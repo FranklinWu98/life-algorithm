@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(ls:*)",
+      "Bash(pnpm --filter client build:*)"
+    ],
+    "additionalDirectories": [
+      "/docmost/apps/client/src/features/project/{types,services,queries,atoms,hooks,components/sidebar,components"
+    ]
+  }
+}

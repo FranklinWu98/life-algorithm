@@ -54,6 +54,7 @@ export interface Attachments {
   mimeType: string | null;
   pageId: string | null;
   spaceId: string | null;
+  taskId: string | null;
   textContent: string | null;
   tsv: string | null;
   type: string | null;
@@ -390,6 +391,62 @@ export interface Watchers {
   createdAt: Generated<Timestamp>;
 }
 
+export interface Domains {
+  color: string | null;
+  createdAt: Generated<Timestamp>;
+  creatorId: string | null;
+  deletedAt: Timestamp | null;
+  description: string | null;
+  id: Generated<string>;
+  name: string;
+  sortOrder: Generated<number>;
+  updatedAt: Generated<Timestamp>;
+  workspaceId: string;
+}
+
+export interface Missions {
+  createdAt: Generated<Timestamp>;
+  creatorId: string | null;
+  deletedAt: Timestamp | null;
+  description: string | null;
+  domainId: string;
+  endDate: Timestamp | null;
+  id: Generated<string>;
+  name: string;
+  sortOrder: Generated<number>;
+  startDate: Timestamp | null;
+  status: Generated<string>;
+  updatedAt: Generated<Timestamp>;
+  workspaceId: string;
+}
+
+export interface Tasks {
+  createdAt: Generated<Timestamp>;
+  creatorId: string | null;
+  deletedAt: Timestamp | null;
+  finishTime: Timestamp | null;
+  id: Generated<string>;
+  importantLevel: Generated<number>;
+  missionId: string;
+  name: string;
+  sortOrder: Generated<number>;
+  status: Generated<string>;
+  timeToDoEnd: Timestamp | null;
+  timeToDoStart: Timestamp | null;
+  updatedAt: Generated<Timestamp>;
+  workspaceId: string;
+}
+
+export interface TaskNotes {
+  content: Json | null;
+  taskId: string;
+  textContent: string | null;
+  tsv: string | null;
+  updatedAt: Generated<Timestamp>;
+  version: Generated<number>;
+  ydoc: Buffer | null;
+}
+
 export interface DB {
   apiKeys: ApiKeys;
   attachments: Attachments;
@@ -398,15 +455,19 @@ export interface DB {
   backlinks: Backlinks;
   billing: Billing;
   comments: Comments;
+  domains: Domains;
   fileTasks: FileTasks;
   groups: Groups;
   groupUsers: GroupUsers;
+  missions: Missions;
   notifications: Notifications;
   pageHistory: PageHistory;
   pages: Pages;
   shares: Shares;
   spaceMembers: SpaceMembers;
   spaces: Spaces;
+  taskNotes: TaskNotes;
+  tasks: Tasks;
   userMfa: UserMfa;
   users: Users;
   userTokens: UserTokens;

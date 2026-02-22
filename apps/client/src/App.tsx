@@ -37,6 +37,8 @@ import SpaceTrash from "@/pages/space/space-trash.tsx";
 import UserApiKeys from "@/ee/api-key/pages/user-api-keys";
 import WorkspaceApiKeys from "@/ee/api-key/pages/workspace-api-keys";
 import AiSettings from "@/ee/ai/pages/ai-settings.tsx";
+import ProjectHomePage from "@/pages/project/project-home.tsx";
+import MissionTasksPage from "@/pages/project/mission-tasks.tsx";
 
 export default function App() {
   const { t } = useTranslation();
@@ -79,6 +81,11 @@ export default function App() {
         <Route element={<Layout />}>
           <Route path={"/home"} element={<Home />} />
           <Route path={"/spaces"} element={<SpacesPage />} />
+          <Route path={"/project"} element={<ProjectHomePage />} />
+          <Route
+            path={"/project/d/:domainId/m/:missionId"}
+            element={<MissionTasksPage />}
+          />
           <Route path={"/s/:spaceSlug"} element={<SpaceHome />} />
           <Route path={"/s/:spaceSlug/trash"} element={<SpaceTrash />} />
           <Route

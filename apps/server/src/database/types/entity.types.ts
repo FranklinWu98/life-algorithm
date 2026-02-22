@@ -2,10 +2,14 @@ import { Insertable, Selectable, Updateable } from 'kysely';
 import {
   Attachments,
   Comments,
+  Domains,
   Groups,
+  Missions,
   Notifications,
   Pages,
   Spaces,
+  Tasks,
+  TaskNotes,
   Users,
   Workspaces,
   PageHistory as History,
@@ -143,3 +147,23 @@ export type UpdatableNotification = Updateable<Omit<Notifications, 'id'>>;
 export type Watcher = Selectable<Watchers>;
 export type InsertableWatcher = Insertable<Watchers>;
 export type UpdatableWatcher = Updateable<Omit<Watchers, 'id'>>;
+
+// Domain
+export type Domain = Selectable<Domains>;
+export type InsertableDomain = Insertable<Domains>;
+export type UpdatableDomain = Updateable<Omit<Domains, 'id'>>;
+
+// Mission
+export type Mission = Selectable<Missions>;
+export type InsertableMission = Insertable<Missions>;
+export type UpdatableMission = Updateable<Omit<Missions, 'id'>>;
+
+// Task
+export type Task = Selectable<Tasks>;
+export type InsertableTask = Insertable<Tasks>;
+export type UpdatableTask = Updateable<Omit<Tasks, 'id'>>;
+
+// TaskNote
+export type TaskNote = Selectable<TaskNotes>;
+export type InsertableTaskNote = Insertable<TaskNotes>;
+export type UpdatableTaskNote = Updateable<TaskNotes>;

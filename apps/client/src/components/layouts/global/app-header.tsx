@@ -24,7 +24,10 @@ import {
 } from "@/features/search/constants.ts";
 import { NotificationPopover } from "@/features/notification/components/notification-popover.tsx";
 
-const links = [{ link: APP_ROUTE.HOME, label: "Home" }];
+const links = [
+  { link: APP_ROUTE.HOME, label: "Home" },
+  { link: APP_ROUTE.PROJECT, label: "Project" },
+];
 
 export function AppHeader() {
   const { t } = useTranslation();
