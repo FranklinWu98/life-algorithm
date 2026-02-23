@@ -3,7 +3,9 @@
     "allow": [
       "Bash(npx tsc:*)",
       "Bash(ls:*)",
-      "Bash(pnpm --filter client build:*)"
+      "Bash(pnpm --filter client build:*)",
+      "Bash(npx nx build:*)",
+      "Bash(PGPASSWORD=docmost123 psql:*)"
     ],
     "additionalDirectories": [
       "/docmost/apps/client/src/features/project/{types,services,queries,atoms,hooks,components/sidebar,components"

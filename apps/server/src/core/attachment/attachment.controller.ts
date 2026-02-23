@@ -105,8 +105,12 @@ export class AttachmentController {
       throw new BadRequestException('PageId is required');
     }
 
-    const page = await this.pageRepo.findById(pageId);
+    const attachmentId = file.fields?.attachmentId?.value;
+    if (attachmentId && !isValidUUID(attachmentId)) {
+      throw new BadRequestException('Invalid attachment id');
+    }
 
+    const page = await this.pageRepo.findById(pageId);
     if (!page) {
       throw new NotFoundException('Page not found');
     }
@@ -119,18 +123,11 @@ export class AttachmentController {
       throw new ForbiddenException();
     }
 
-    const spaceId = page.spaceId;
-
-    const attachmentId = file.fields?.attachmentId?.value;
-    if (attachmentId && !isValidUUID(attachmentId)) {
-      throw new BadRequestException('Invalid attachment id');
-    }
-
     try {
       const fileResponse = await this.attachmentService.uploadFile({
         filePromise: file,
         pageId: pageId,
-        spaceId: spaceId,
+        spaceId: page.spaceId,
         userId: user.id,
         workspaceId: workspace.id,
         attachmentId: attachmentId,
@@ -163,22 +160,18 @@ export class AttachmentController {
     }
 
     const attachment = await this.attachmentRepo.findById(fileId);
-    if (
-      !attachment ||
-      attachment.workspaceId !== workspace.id ||
-      !attachment.pageId ||
-      !attachment.spaceId
-    ) {
+    if (!attachment || attachment.workspaceId !== workspace.id) {
       throw new NotFoundException();
     }
 
-    const spaceAbility = await this.spaceAbility.createForUser(
-      user,
-      attachment.spaceId,
-    );
-
-    if (spaceAbility.cannot(SpaceCaslAction.Read, SpaceCaslSubject.Page)) {
-      throw new ForbiddenException();
+    if (attachment.spaceId) {
+      const spaceAbility = await this.spaceAbility.createForUser(
+        user,
+        attachment.spaceId,
+      );
+      if (spaceAbility.cannot(SpaceCaslAction.Read, SpaceCaslSubject.Page)) {
+        throw new ForbiddenException();
+      }
     }
 
     try {

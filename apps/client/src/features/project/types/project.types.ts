@@ -11,6 +11,7 @@ export interface IDomain {
   description: string | null;
   color: string | null;
   sortOrder: number;
+  spaceId: string;
   workspaceId: string;
   creatorId: string | null;
   createdAt: string;
@@ -34,32 +35,14 @@ export interface IMission {
   deletedAt: string | null;
 }
 
-export interface ITask {
-  id: string;
-  name: string;
-  status: TaskStatus;
-  importantLevel: ImportantLevel;
+// Task properties present on a page when it belongs to a mission
+export interface IPageTaskProps {
+  missionId: string | null;
+  taskStatus: TaskStatus | null;
+  importantLevel: ImportantLevel | null;
   timeToDoStart: string | null;
   timeToDoEnd: string | null;
   finishTime: string | null;
-  sortOrder: number;
-  missionId: string;
-  workspaceId: string;
-  creatorId: string | null;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
-  // eagerly-loaded relations
-  note?: ITaskNote | null;
-  creator?: { id: string; name: string; avatarUrl: string | null } | null;
-}
-
-export interface ITaskNote {
-  taskId: string;
-  content: Record<string, unknown> | null;
-  textContent: string | null;
-  version: number;
-  updatedAt: string;
 }
 
 // ── DTO shapes ─────────────────────────────────────────────────────────────
@@ -69,9 +52,10 @@ export interface ICreateDomain {
   description?: string;
   color?: string;
   sortOrder?: number;
+  spaceId: string;
 }
 
-export interface IUpdateDomain extends Partial<ICreateDomain> {}
+export interface IUpdateDomain extends Partial<Omit<ICreateDomain, 'spaceId'>> {}
 
 export interface ICreateMission {
   name: string;
@@ -81,35 +65,31 @@ export interface ICreateMission {
   endDate?: string;
   sortOrder?: number;
   domainId: string;
+  spaceId: string;
 }
 
-export interface IUpdateMission extends Partial<Omit<ICreateMission, 'domainId'>> {
+export interface IUpdateMission extends Partial<Omit<ICreateMission, 'domainId' | 'spaceId'>> {
   domainId?: string;
 }
 
-export interface ICreateTask {
-  name: string;
-  status?: TaskStatus;
+// Page task property update DTO (used when updating a page's mission link or task props)
+export interface IUpdatePageTaskProps {
+  missionId?: string | null;
+  taskStatus?: TaskStatus;
   importantLevel?: ImportantLevel;
-  timeToDoStart?: string;
-  timeToDoEnd?: string;
-  sortOrder?: number;
-  missionId: string;
+  timeToDoStart?: string | null;
+  timeToDoEnd?: string | null;
+  finishTime?: string | null;
 }
 
-export interface IUpdateTask extends Partial<Omit<ICreateTask, 'missionId'>> {
-  missionId?: string;
-  finishTime?: string;
-}
-
-// ── Filter shape — designed to grow ────────────────────────────────────────
+// ── Filter shape ────────────────────────────────────────────────────────────
 
 export interface ITaskFilterState {
   search: string;
   status: TaskStatus | null;
   importantLevel: ImportantLevel | null;
-  timeToDoStart: string | null; // ISO date
-  timeToDoEnd: string | null;   // ISO date
+  timeToDoStart: string | null;
+  timeToDoEnd: string | null;
 }
 
 export const DEFAULT_TASK_FILTERS: ITaskFilterState = {

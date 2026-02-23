@@ -54,7 +54,6 @@ export interface Attachments {
   mimeType: string | null;
   pageId: string | null;
   spaceId: string | null;
-  taskId: string | null;
   textContent: string | null;
   tsv: string | null;
   type: string | null;
@@ -224,15 +223,21 @@ export interface Pages {
   creatorId: string | null;
   deletedAt: Timestamp | null;
   deletedById: string | null;
+  finishTime: Timestamp | null;
   icon: string | null;
   id: Generated<string>;
+  importantLevel: number | null;
   isLocked: Generated<boolean>;
   lastUpdatedById: string | null;
+  missionId: string | null;
   parentPageId: string | null;
   position: string | null;
   slugId: string;
   spaceId: string;
+  taskStatus: string | null;
   textContent: string | null;
+  timeToDoEnd: Timestamp | null;
+  timeToDoStart: Timestamp | null;
   title: string | null;
   tsv: string | null;
   updatedAt: Generated<Timestamp>;
@@ -400,6 +405,7 @@ export interface Domains {
   id: Generated<string>;
   name: string;
   sortOrder: Generated<number>;
+  spaceId: string;
   updatedAt: Generated<Timestamp>;
   workspaceId: string;
 }
@@ -418,33 +424,6 @@ export interface Missions {
   status: Generated<string>;
   updatedAt: Generated<Timestamp>;
   workspaceId: string;
-}
-
-export interface Tasks {
-  createdAt: Generated<Timestamp>;
-  creatorId: string | null;
-  deletedAt: Timestamp | null;
-  finishTime: Timestamp | null;
-  id: Generated<string>;
-  importantLevel: Generated<number>;
-  missionId: string;
-  name: string;
-  sortOrder: Generated<number>;
-  status: Generated<string>;
-  timeToDoEnd: Timestamp | null;
-  timeToDoStart: Timestamp | null;
-  updatedAt: Generated<Timestamp>;
-  workspaceId: string;
-}
-
-export interface TaskNotes {
-  content: Json | null;
-  taskId: string;
-  textContent: string | null;
-  tsv: string | null;
-  updatedAt: Generated<Timestamp>;
-  version: Generated<number>;
-  ydoc: Buffer | null;
 }
 
 export interface DB {
@@ -466,8 +445,6 @@ export interface DB {
   shares: Shares;
   spaceMembers: SpaceMembers;
   spaces: Spaces;
-  taskNotes: TaskNotes;
-  tasks: Tasks;
   userMfa: UserMfa;
   users: Users;
   userTokens: UserTokens;

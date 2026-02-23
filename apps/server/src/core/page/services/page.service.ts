@@ -130,6 +130,12 @@ export class PageService {
       content,
       textContent,
       ydoc,
+      missionId: createPageDto.missionId ?? null,
+      taskStatus: createPageDto.missionId ? (createPageDto.taskStatus ?? 'not_started') : null,
+      importantLevel: createPageDto.missionId ? (createPageDto.importantLevel ?? 0) : null,
+      timeToDoStart: createPageDto.timeToDoStart ? new Date(createPageDto.timeToDoStart) : null,
+      timeToDoEnd: createPageDto.timeToDoEnd ? new Date(createPageDto.timeToDoEnd) : null,
+      finishTime: null,
     });
 
     this.generalQueue
@@ -196,6 +202,24 @@ export class PageService {
     contributors.add(user.id);
     const contributorIds = Array.from(contributors);
 
+    const clearingMission = updatePageDto.missionId === null;
+    const assigningMission =
+      updatePageDto.missionId !== undefined &&
+      updatePageDto.missionId !== null &&
+      !page.missionId;
+
+    // Auto-manage finishTime when task status changes
+    let finishTime: Date | null | undefined = updatePageDto.finishTime
+      ? new Date(updatePageDto.finishTime)
+      : undefined;
+    if (!clearingMission) {
+      if (updatePageDto.taskStatus === 'completed' && !page.finishTime && !finishTime) {
+        finishTime = new Date();
+      } else if (updatePageDto.taskStatus && updatePageDto.taskStatus !== 'completed' && page.finishTime) {
+        finishTime = null;
+      }
+    }
+
     await this.pageRepo.updatePage(
       {
         title: updatePageDto.title,
@@ -203,6 +227,30 @@ export class PageService {
         lastUpdatedById: user.id,
         updatedAt: new Date(),
         contributorIds: contributorIds,
+        ...(updatePageDto.missionId !== undefined && { missionId: updatePageDto.missionId ?? null }),
+        // When clearing a mission, wipe all task properties
+        ...(clearingMission && {
+          taskStatus: null,
+          importantLevel: null,
+          timeToDoStart: null,
+          timeToDoEnd: null,
+          finishTime: null,
+        }),
+        // When first assigning a mission, set sensible defaults
+        ...(assigningMission && {
+          taskStatus: updatePageDto.taskStatus ?? 'not_started',
+          importantLevel: updatePageDto.importantLevel ?? 0,
+        }),
+        // Normal task-prop updates (not clearing or first-assign)
+        ...(!clearingMission && !assigningMission && {
+          ...(updatePageDto.taskStatus !== undefined && { taskStatus: updatePageDto.taskStatus }),
+          ...(updatePageDto.importantLevel !== undefined && { importantLevel: updatePageDto.importantLevel }),
+        }),
+        ...(!clearingMission && {
+          ...(updatePageDto.timeToDoStart !== undefined && { timeToDoStart: updatePageDto.timeToDoStart ? new Date(updatePageDto.timeToDoStart) : null }),
+          ...(updatePageDto.timeToDoEnd !== undefined && { timeToDoEnd: updatePageDto.timeToDoEnd ? new Date(updatePageDto.timeToDoEnd) : null }),
+          ...(finishTime !== undefined && { finishTime }),
+        }),
       },
       page.id,
     );

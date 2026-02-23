@@ -40,6 +40,9 @@ export class CreateMissionDto {
 
   @IsUUID()
   domainId: string;
+
+  @IsUUID()
+  spaceId: string;
 }
 
 export class UpdateMissionDto {

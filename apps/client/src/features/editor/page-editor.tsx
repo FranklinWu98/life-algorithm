@@ -6,6 +6,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
 import {
@@ -67,6 +68,8 @@ import { jwtDecode } from "jwt-decode";
 import { searchSpotlight } from "@/features/search/constants.ts";
 import { useEditorScroll } from "./hooks/use-editor-scroll";
 import { EditorAiMenu } from "@/ee/ai/components/editor/ai-menu/ai-menu";
+import { Divider, Group, Paper, Stack, Text, UnstyledButton } from "@mantine/core";
+import { IconClipboard, IconCopy, IconTrash } from "@tabler/icons-react";
 
 interface PageEditorProps {
   pageId: string;
@@ -417,6 +420,7 @@ export default function PageEditor({
             <ExcalidrawMenu editor={editor} />
             <DrawioMenu editor={editor} />
             <LinkMenu editor={editor} appendTo={menuContainerRef} />
+            <DragHandleMenu editor={editor} />
           </div>
         )}
         {showCommentPopup && <CommentDialog editor={editor} pageId={pageId} />}
@@ -426,5 +430,136 @@ export default function PageEditor({
         style={{ paddingBottom: "20vh" }}
       ></div>
     </div>
+  );
+}
+
+// ── Drag handle click menu ────────────────────────────────────────────────────
+
+interface DragHandleMenuState {
+  x: number;
+  y: number;
+  nodePos: number;
+}
+
+function DragHandleMenu({ editor }: { editor: Editor }) {
+  const [menu, setMenu] = useState<DragHandleMenuState | null>(null);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as Element;
+      if (!target.classList.contains("drag-handle")) return;
+
+      // Only fire on a plain click (left button, no modifier)
+      if (e.button !== 0 || e.ctrlKey || e.metaKey) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      const handleRect = target.getBoundingClientRect();
+      // Look to the right of the drag handle to find the document node
+      const searchX = handleRect.right + 24;
+      const searchY = handleRect.top + handleRect.height / 2;
+
+      let nodePos = -1;
+      try {
+        const posResult = editor.view.posAtCoords({ left: searchX, top: searchY });
+        if (posResult) {
+          const resolved = editor.state.doc.resolve(posResult.pos);
+          // Get the top-level block position (depth 1 from doc root)
+          nodePos = resolved.depth > 0 ? resolved.before(Math.min(resolved.depth, 1)) : posResult.pos;
+          editor.commands.setNodeSelection(nodePos);
+        }
+      } catch (_) {
+        // ignore ProseMirror resolve errors for edge positions
+      }
+
+      setMenu({ x: handleRect.right + 6, y: handleRect.top, nodePos });
+    };
+
+    // Use capture so we intercept before the drag logic
+    document.addEventListener("click", handleClick, true);
+    return () => document.removeEventListener("click", handleClick, true);
+  }, [editor]);
+
+  if (!menu) return null;
+
+  const close = () => {
+    setMenu(null);
+    // Restore cursor after closing menu
+    editor.commands.focus();
+  };
+
+  const handleDuplicate = () => {
+    if (menu.nodePos < 0) { close(); return; }
+    const node = editor.state.doc.nodeAt(menu.nodePos);
+    if (!node) { close(); return; }
+    editor.chain().focus().insertContentAt(menu.nodePos + node.nodeSize, node.toJSON()).run();
+    close();
+  };
+
+  const handleCopyText = () => {
+    if (menu.nodePos < 0) { close(); return; }
+    const node = editor.state.doc.nodeAt(menu.nodePos);
+    if (node) navigator.clipboard.writeText(node.textContent).catch(() => {});
+    close();
+  };
+
+  const handleDelete = () => {
+    editor.chain().focus().deleteSelection().run();
+    close();
+  };
+
+  return createPortal(
+    <>
+      {/* Transparent backdrop to close on outside click */}
+      <div
+        style={{ position: "fixed", inset: 0, zIndex: 999 }}
+        onClick={() => setMenu(null)}
+      />
+      <Paper
+        shadow="md"
+        withBorder
+        style={{
+          position: "fixed",
+          left: menu.x,
+          top: menu.y,
+          zIndex: 1000,
+          minWidth: 160,
+        }}
+        p={4}
+      >
+        <Stack gap={2}>
+          <UnstyledButton
+            onClick={handleDuplicate}
+            style={{ padding: "6px 10px", borderRadius: 4, width: "100%" }}
+          >
+            <Group gap="xs" wrap="nowrap">
+              <IconCopy size={14} />
+              <Text size="sm">Duplicate block</Text>
+            </Group>
+          </UnstyledButton>
+          <UnstyledButton
+            onClick={handleCopyText}
+            style={{ padding: "6px 10px", borderRadius: 4, width: "100%" }}
+          >
+            <Group gap="xs" wrap="nowrap">
+              <IconClipboard size={14} />
+              <Text size="sm">Copy text</Text>
+            </Group>
+          </UnstyledButton>
+          <Divider my={2} />
+          <UnstyledButton
+            onClick={handleDelete}
+            style={{ padding: "6px 10px", borderRadius: 4, width: "100%", color: "var(--mantine-color-red-6)" }}
+          >
+            <Group gap="xs" wrap="nowrap">
+              <IconTrash size={14} color="var(--mantine-color-red-6)" />
+              <Text size="sm" c="red">Delete block</Text>
+            </Group>
+          </UnstyledButton>
+        </Stack>
+      </Paper>
+    </>,
+    document.body,
   );
 }

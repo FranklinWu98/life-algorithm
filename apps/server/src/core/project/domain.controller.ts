@@ -8,6 +8,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { DomainService } from './domain.service';
@@ -16,6 +17,12 @@ import { AuthUser } from '../../common/decorators/auth-user.decorator';
 import { AuthWorkspace } from '../../common/decorators/auth-workspace.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { User, Workspace } from '@docmost/db/types/entity.types';
+import { IsUUID } from 'class-validator';
+
+class SpaceQueryDto {
+  @IsUUID()
+  spaceId: string;
+}
 
 @UseGuards(JwtAuthGuard)
 @Controller('domains')
@@ -34,17 +41,17 @@ export class DomainController {
 
   @HttpCode(HttpStatus.OK)
   @Get()
-  async getAll(@AuthWorkspace() workspace: Workspace) {
-    return this.domainService.getAll(workspace.id);
+  async getAll(@Query() query: SpaceQueryDto) {
+    return this.domainService.getAll(query.spaceId);
   }
 
   @HttpCode(HttpStatus.OK)
   @Get(':domainId')
   async getById(
     @Param() params: DomainIdDto,
-    @AuthWorkspace() workspace: Workspace,
+    @Query() query: SpaceQueryDto,
   ) {
-    return this.domainService.getById(params.domainId, workspace.id);
+    return this.domainService.getById(params.domainId, query.spaceId);
   }
 
   @HttpCode(HttpStatus.OK)
@@ -52,17 +59,17 @@ export class DomainController {
   async update(
     @Param() params: DomainIdDto,
     @Body() dto: UpdateDomainDto,
-    @AuthWorkspace() workspace: Workspace,
+    @Query() query: SpaceQueryDto,
   ) {
-    await this.domainService.update(params.domainId, workspace.id, dto);
+    await this.domainService.update(params.domainId, query.spaceId, dto);
   }
 
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':domainId')
   async remove(
     @Param() params: DomainIdDto,
-    @AuthWorkspace() workspace: Workspace,
+    @Query() query: SpaceQueryDto,
   ) {
-    await this.domainService.remove(params.domainId, workspace.id);
+    await this.domainService.remove(params.domainId, query.spaceId);
   }
 }

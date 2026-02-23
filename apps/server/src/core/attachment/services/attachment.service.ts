@@ -43,9 +43,9 @@ export class AttachmentService {
 
   async uploadFile(opts: {
     filePromise: Promise<MultipartFile>;
-    pageId: string;
+    pageId: string | null;
     userId: string;
-    spaceId: string;
+    spaceId: string | null;
     workspaceId: string;
     attachmentId?: string;
   }) {

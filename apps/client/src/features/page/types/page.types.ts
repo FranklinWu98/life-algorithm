@@ -1,4 +1,5 @@
 import { ISpace } from "@/features/space/types/space.types.ts";
+import type { TaskStatus, ImportantLevel } from "@/features/project/types/project.types";
 
 export interface IPage {
   id: string;
@@ -22,6 +23,13 @@ export interface IPage {
   lastUpdatedBy: ILastUpdatedBy;
   deletedBy: IDeletedBy;
   space: Partial<ISpace>;
+  // Task properties — populated when the page belongs to a mission
+  missionId: string | null;
+  taskStatus: TaskStatus | null;
+  importantLevel: ImportantLevel | null;
+  timeToDoStart: string | null;
+  timeToDoEnd: string | null;
+  finishTime: string | null;
 }
 
 interface ICreator {
@@ -73,6 +81,13 @@ export interface IPageInput {
   coverPhoto: string;
   position: string;
   isLocked: boolean;
+  // Task properties — only sent when updating mission-linked pages
+  missionId?: string | null;
+  taskStatus?: TaskStatus | null;
+  importantLevel?: ImportantLevel | null;
+  timeToDoStart?: string | null;
+  timeToDoEnd?: string | null;
+  finishTime?: string | null;
 }
 
 export interface IExportPageParams {

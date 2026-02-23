@@ -29,8 +29,6 @@ import { WatcherRepo } from '@docmost/db/repos/watcher/watcher.repo';
 import { PageListener } from '@docmost/db/listeners/page.listener';
 import { DomainRepo } from '@docmost/db/repos/project/domain.repo';
 import { MissionRepo } from '@docmost/db/repos/project/mission.repo';
-import { TaskRepo } from '@docmost/db/repos/project/task.repo';
-import { TaskNoteRepo } from '@docmost/db/repos/project/task-note.repo';
 import { PostgresJSDialect } from 'kysely-postgres-js';
 import * as postgres from 'postgres';
 import { normalizePostgresUrl } from '../common/helpers';
@@ -91,8 +89,6 @@ import { normalizePostgresUrl } from '../common/helpers';
     PageListener,
     DomainRepo,
     MissionRepo,
-    TaskRepo,
-    TaskNoteRepo,
   ],
   exports: [
     WorkspaceRepo,
@@ -112,8 +108,6 @@ import { normalizePostgresUrl } from '../common/helpers';
     WatcherRepo,
     DomainRepo,
     MissionRepo,
-    TaskRepo,
-    TaskNoteRepo,
   ],
 })
 export class DatabaseModule
@@ -130,9 +124,7 @@ export class DatabaseModule
   async onApplicationBootstrap() {
     await this.establishConnection();
 
-    if (this.environmentService.getNodeEnv() === 'production') {
-      await this.migrationService.migrateToLatest();
-    }
+    await this.migrationService.migrateToLatest();
   }
 
   async beforeApplicationShutdown(): Promise<void> {

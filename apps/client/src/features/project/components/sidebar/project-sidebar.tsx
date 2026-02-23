@@ -19,14 +19,17 @@ import {
   IconDots,
   IconEdit,
   IconLayoutList,
+  IconList,
   IconPlus,
+  IconSortAscending,
   IconTarget,
   IconTrash,
 } from '@tabler/icons-react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import clsx from 'clsx';
 import { useDisclosure } from '@mantine/hooks';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import classes from './project-sidebar.module.css';
 import {
   useCreateDomainMutation,
@@ -40,6 +43,13 @@ import {
 } from '@/features/project/queries/project-query';
 import { IDomain, IMission, MissionStatus } from '@/features/project/types/project.types';
 import { MISSION_STATUS_COLORS } from '@/features/project/hooks/use-task-filters';
+import {
+  missionStatusFilterAtom,
+  domainSortAtom,
+  missionSortAtom,
+  type DomainSortKey,
+  type MissionSortKey,
+} from '@/features/project/atoms/project-prefs-atom';
 
 // ── Edit domain modal ─────────────────────────────────────────────────────────
 
@@ -47,9 +57,10 @@ interface EditDomainModalProps {
   opened: boolean;
   onClose: () => void;
   domain: IDomain;
+  spaceId: string;
 }
 
-function EditDomainModal({ opened, onClose, domain }: EditDomainModalProps) {
+function EditDomainModal({ opened, onClose, domain, spaceId }: EditDomainModalProps) {
   const [name, setName] = useState(domain.name);
   const [description, setDescription] = useState(domain.description ?? '');
   const [color, setColor] = useState(domain.color ?? '#228be6');
@@ -68,6 +79,7 @@ function EditDomainModal({ opened, onClose, domain }: EditDomainModalProps) {
     update.mutate(
       {
         domainId: domain.id,
+        spaceId,
         data: { name: name.trim(), description: description.trim() || undefined, color },
       },
       { onSuccess: onClose },
@@ -198,14 +210,14 @@ function EditMissionModal({ opened, onClose, mission, domainId }: EditMissionMod
           <DateInput
             label="Start date"
             value={startDate ? new Date(startDate) : null}
-            onChange={(v: string) => setStartDate(v || null)}
+            onChange={(v: string | null) => setStartDate(v ?? null)}
             clearable
             placeholder="Pick date"
           />
           <DateInput
             label="End date"
             value={endDate ? new Date(endDate) : null}
-            onChange={(v: string) => setEndDate(v || null)}
+            onChange={(v: string | null) => setEndDate(v ?? null)}
             clearable
             placeholder="Pick date"
           />
@@ -232,9 +244,11 @@ function EditMissionModal({ opened, onClose, mission, domainId }: EditMissionMod
 
 interface DomainItemProps {
   domain: IDomain;
+  spaceId: string;
+  spaceSlug: string;
 }
 
-function DomainItem({ domain }: DomainItemProps) {
+function DomainItem({ domain, spaceId, spaceSlug }: DomainItemProps) {
   const [expanded, setExpanded] = useState(true);
   const { data: missions = [], isLoading } = useGetMissionsQuery(domain.id);
   const deleteDomain = useDeleteDomainMutation();
@@ -242,7 +256,28 @@ function DomainItem({ domain }: DomainItemProps) {
     useDisclosure(false);
   const [editOpened, { open: openEdit, close: closeEdit }] = useDisclosure(false);
 
+  const statusFilter = useAtomValue(missionStatusFilterAtom);
+  const missionSort = useAtomValue(missionSortAtom);
+
   const dotColor = domain.color ?? '#868e96';
+
+  const filteredSortedMissions = useMemo(() => {
+    let list = missions;
+    // Filter
+    if (statusFilter) {
+      list = list.filter((m) => m.status === statusFilter);
+    }
+    // Sort
+    if (missionSort === 'name-asc') {
+      list = [...list].sort((a, b) => a.name.localeCompare(b.name));
+    } else if (missionSort === 'name-desc') {
+      list = [...list].sort((a, b) => b.name.localeCompare(a.name));
+    } else if (missionSort === 'status') {
+      const order: Record<MissionStatus, number> = { active: 0, completed: 1, archived: 2, cancelled: 3 };
+      list = [...list].sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9));
+    }
+    return list;
+  }, [missions, statusFilter, missionSort]);
 
   return (
     <div>
@@ -307,7 +342,7 @@ function DomainItem({ domain }: DomainItemProps) {
               <Menu.Item
                 color="red"
                 leftSection={<IconTrash size={14} />}
-                onClick={() => deleteDomain.mutate(domain.id)}
+                onClick={() => deleteDomain.mutate({ domainId: domain.id, spaceId })}
               >
                 Delete domain
               </Menu.Item>
@@ -324,12 +359,12 @@ function DomainItem({ domain }: DomainItemProps) {
               Loading…
             </Text>
           )}
-          {missions.map((m) => (
-            <MissionItem key={m.id} mission={m} domain={domain} />
+          {filteredSortedMissions.map((m) => (
+            <MissionItem key={m.id} mission={m} domain={domain} spaceId={spaceId} spaceSlug={spaceSlug} />
           ))}
-          {!isLoading && missions.length === 0 && (
+          {!isLoading && filteredSortedMissions.length === 0 && (
             <Text size="xs" c="dimmed" px="xs">
-              No missions yet
+              {statusFilter ? 'No missions match filter' : 'No missions yet'}
             </Text>
           )}
         </div>
@@ -339,11 +374,13 @@ function DomainItem({ domain }: DomainItemProps) {
         opened={addMissionOpened}
         onClose={closeAddMission}
         domain={domain}
+        spaceId={spaceId}
       />
       <EditDomainModal
         opened={editOpened}
         onClose={closeEdit}
         domain={domain}
+        spaceId={spaceId}
       />
     </div>
   );
@@ -354,9 +391,11 @@ function DomainItem({ domain }: DomainItemProps) {
 interface MissionItemProps {
   mission: IMission;
   domain: IDomain;
+  spaceId: string;
+  spaceSlug: string;
 }
 
-function MissionItem({ mission, domain }: MissionItemProps) {
+function MissionItem({ mission, domain, spaceId, spaceSlug }: MissionItemProps) {
   const { missionId: activeMissionId } = useParams();
   const deleteMission = useDeleteMissionMutation();
   const [editOpened, { open: openEdit, close: closeEdit }] = useDisclosure(false);
@@ -367,7 +406,7 @@ function MissionItem({ mission, domain }: MissionItemProps) {
     <>
       <UnstyledButton
         component={Link}
-        to={`/project/d/${domain.id}/m/${mission.id}`}
+        to={`/s/${spaceSlug}/mission/${mission.id}`}
         className={clsx(
           classes.missionItem,
           isActive && classes.missionItemActive,
@@ -409,6 +448,7 @@ function MissionItem({ mission, domain }: MissionItemProps) {
                   deleteMission.mutate({
                     missionId: mission.id,
                     domainId: domain.id,
+                    spaceId,
                   });
                 }}
               >
@@ -434,16 +474,17 @@ function MissionItem({ mission, domain }: MissionItemProps) {
 interface AddDomainModalProps {
   opened: boolean;
   onClose: () => void;
+  spaceId: string;
 }
 
-function AddDomainModal({ opened, onClose }: AddDomainModalProps) {
+function AddDomainModal({ opened, onClose, spaceId }: AddDomainModalProps) {
   const [name, setName] = useState('');
   const create = useCreateDomainMutation();
 
   const handleSubmit = () => {
     if (!name.trim()) return;
     create.mutate(
-      { name: name.trim() },
+      { name: name.trim(), spaceId },
       {
         onSuccess: () => {
           setName('');
@@ -488,16 +529,17 @@ interface AddMissionModalProps {
   opened: boolean;
   onClose: () => void;
   domain: IDomain;
+  spaceId: string;
 }
 
-function AddMissionModal({ opened, onClose, domain }: AddMissionModalProps) {
+function AddMissionModal({ opened, onClose, domain, spaceId }: AddMissionModalProps) {
   const [name, setName] = useState('');
   const create = useCreateMissionMutation();
 
   const handleSubmit = () => {
     if (!name.trim()) return;
     create.mutate(
-      { name: name.trim(), domainId: domain.id },
+      { name: name.trim(), domainId: domain.id, spaceId },
       {
         onSuccess: () => {
           setName('');
@@ -541,20 +583,170 @@ function AddMissionModal({ opened, onClose, domain }: AddMissionModalProps) {
   );
 }
 
+// ── Filter + Sort bar ─────────────────────────────────────────────────────────
+
+const STATUS_FILTERS: { value: MissionStatus | null; label: string; color: string }[] = [
+  { value: null, label: 'All', color: 'gray' },
+  { value: 'active', label: 'Active', color: 'blue' },
+  { value: 'completed', label: 'Done', color: 'green' },
+  { value: 'archived', label: 'Archived', color: 'gray' },
+  { value: 'cancelled', label: 'Cancelled', color: 'red' },
+];
+
+const DOMAIN_SORT_LABELS: Record<DomainSortKey, string> = {
+  default: 'Domains: default',
+  'name-asc': 'Domains: A → Z',
+  'name-desc': 'Domains: Z → A',
+};
+const MISSION_SORT_LABELS: Record<MissionSortKey, string> = {
+  default: 'Missions: default',
+  'name-asc': 'Missions: A → Z',
+  'name-desc': 'Missions: Z → A',
+  status: 'Missions: by status',
+};
+
+function FilterSortBar() {
+  const statusFilter = useAtomValue(missionStatusFilterAtom);
+  const setStatusFilter = useSetAtom(missionStatusFilterAtom);
+  const domainSort = useAtomValue(domainSortAtom);
+  const setDomainSort = useSetAtom(domainSortAtom);
+  const missionSort = useAtomValue(missionSortAtom);
+  const setMissionSort = useSetAtom(missionSortAtom);
+
+  const isSorted = domainSort !== 'default' || missionSort !== 'default';
+  const isFiltered = statusFilter !== null;
+
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <Group gap={4} mb={4} align="center">
+        {/* Filter menu */}
+        <Menu width={180} shadow="md" withinPortal position="bottom-start">
+          <Menu.Target>
+            <Tooltip label="Filter missions" withArrow position="right">
+              <ActionIcon
+                size={20}
+                variant={isFiltered ? 'filled' : 'subtle'}
+                color={isFiltered ? 'blue' : 'gray'}
+              >
+                <IconList size={12} />
+              </ActionIcon>
+            </Tooltip>
+          </Menu.Target>
+          <Menu.Dropdown>
+            <Menu.Label>Filter by status</Menu.Label>
+            {STATUS_FILTERS.map(({ value, label, color }) => (
+              <Menu.Item
+                key={String(value)}
+                fw={statusFilter === value ? 600 : 400}
+                onClick={() => setStatusFilter(value)}
+                rightSection={statusFilter === value ? '✓' : undefined}
+                leftSection={
+                  <div style={{
+                    width: 8, height: 8, borderRadius: '50%',
+                    backgroundColor: `var(--mantine-color-${color}-5)`,
+                  }} />
+                }
+              >
+                {label}
+              </Menu.Item>
+            ))}
+          </Menu.Dropdown>
+        </Menu>
+
+        {/* Sort menu */}
+        <Menu width={200} shadow="md" withinPortal position="bottom-start">
+          <Menu.Target>
+            <Tooltip label="Sort" withArrow position="right">
+              <ActionIcon
+                size={20}
+                variant={isSorted ? 'filled' : 'subtle'}
+                color={isSorted ? 'blue' : 'gray'}
+              >
+                <IconSortAscending size={12} />
+              </ActionIcon>
+            </Tooltip>
+          </Menu.Target>
+          <Menu.Dropdown>
+            <Menu.Label>Domains</Menu.Label>
+            {(Object.keys(DOMAIN_SORT_LABELS) as DomainSortKey[]).map((key) => (
+              <Menu.Item
+                key={key}
+                fw={domainSort === key ? 600 : 400}
+                onClick={() => setDomainSort(key)}
+                rightSection={domainSort === key ? '✓' : undefined}
+              >
+                {DOMAIN_SORT_LABELS[key]}
+              </Menu.Item>
+            ))}
+            <Menu.Divider />
+            <Menu.Label>Missions</Menu.Label>
+            {(Object.keys(MISSION_SORT_LABELS) as MissionSortKey[]).map((key) => (
+              <Menu.Item
+                key={key}
+                fw={missionSort === key ? 600 : 400}
+                onClick={() => setMissionSort(key)}
+                rightSection={missionSort === key ? '✓' : undefined}
+              >
+                {MISSION_SORT_LABELS[key]}
+              </Menu.Item>
+            ))}
+          </Menu.Dropdown>
+        </Menu>
+      </Group>
+    </div>
+  );
+}
+
 // ── Sidebar root ──────────────────────────────────────────────────────────────
 
-export function ProjectSidebar() {
-  const { data: domains = [], isLoading } = useGetDomainsQuery();
+interface ProjectSidebarProps {
+  spaceId: string;
+  spaceSlug: string;
+}
+
+export function ProjectSidebar({ spaceId, spaceSlug }: ProjectSidebarProps) {
+  const { data: domains = [], isLoading } = useGetDomainsQuery(spaceId);
   const [addDomainOpened, { open: openAddDomain, close: closeAddDomain }] =
     useDisclosure(false);
+  const domainSort = useAtomValue(domainSortAtom);
+  const location = useLocation();
+  const isAllTasksActive = location.pathname === `/s/${spaceSlug}/tasks`;
+
+  const sortedDomains = useMemo(() => {
+    if (domainSort === 'name-asc') return [...domains].sort((a, b) => a.name.localeCompare(b.name));
+    if (domainSort === 'name-desc') return [...domains].sort((a, b) => b.name.localeCompare(a.name));
+    return domains;
+  }, [domains, domainSort]);
 
   return (
     <div className={classes.navbar}>
       {/* Header */}
       <div className={classes.header}>
         <IconLayoutList size={16} className={classes.headerIcon} />
-        <span>Project Manager</span>
+        <UnstyledButton
+          component={Link}
+          to={`/s/${spaceSlug}/projects`}
+          style={{ fontSize: 15, fontWeight: 600, color: 'inherit', textDecoration: 'none', letterSpacing: 0 }}
+        >
+          Projects
+        </UnstyledButton>
       </div>
+
+      {/* All Tasks shortcut */}
+      <UnstyledButton
+        component={Link}
+        to={`/s/${spaceSlug}/tasks`}
+        className={clsx(classes.missionItem, isAllTasksActive && classes.missionItemActive)}
+        style={{ marginBottom: 4 }}
+      >
+        <div className={classes.missionLeft}>
+          <IconList size={13} />
+          <span style={{ fontSize: 13, fontWeight: 500 }}>All Tasks</span>
+        </div>
+      </UnstyledButton>
+
+      {/* Filter + Sort controls */}
+      <FilterSortBar />
 
       {/* Tree */}
       <div className={classes.treeRoot}>
@@ -564,8 +756,8 @@ export function ProjectSidebar() {
           </Text>
         )}
 
-        {domains.map((domain) => (
-          <DomainItem key={domain.id} domain={domain} />
+        {sortedDomains.map((domain) => (
+          <DomainItem key={domain.id} domain={domain} spaceId={spaceId} spaceSlug={spaceSlug} />
         ))}
 
         {!isLoading && domains.length === 0 && (
@@ -584,7 +776,7 @@ export function ProjectSidebar() {
         </UnstyledButton>
       </div>
 
-      <AddDomainModal opened={addDomainOpened} onClose={closeAddDomain} />
+      <AddDomainModal opened={addDomainOpened} onClose={closeAddDomain} spaceId={spaceId} />
     </div>
   );
 }

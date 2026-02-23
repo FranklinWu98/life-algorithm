@@ -8,8 +8,6 @@ import {
   Notifications,
   Pages,
   Spaces,
-  Tasks,
-  TaskNotes,
   Users,
   Workspaces,
   PageHistory as History,
@@ -158,12 +156,3 @@ export type Mission = Selectable<Missions>;
 export type InsertableMission = Insertable<Missions>;
 export type UpdatableMission = Updateable<Omit<Missions, 'id'>>;
 
-// Task
-export type Task = Selectable<Tasks>;
-export type InsertableTask = Insertable<Tasks>;
-export type UpdatableTask = Updateable<Omit<Tasks, 'id'>>;
-
-// TaskNote
-export type TaskNote = Selectable<TaskNotes>;
-export type InsertableTaskNote = Insertable<TaskNotes>;
-export type UpdatableTaskNote = Updateable<TaskNotes>;

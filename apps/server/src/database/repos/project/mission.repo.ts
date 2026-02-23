@@ -40,6 +40,23 @@ export class MissionRepo {
       .execute();
   }
 
+  async findBySpace(
+    spaceId: string,
+    workspaceId: string,
+  ): Promise<Mission[]> {
+    return this.db
+      .selectFrom('missions')
+      .innerJoin('domains', 'domains.id', 'missions.domainId')
+      .selectAll('missions')
+      .where('domains.spaceId', '=', spaceId)
+      .where('missions.workspaceId', '=', workspaceId)
+      .where('missions.deletedAt', 'is', null)
+      .where('domains.deletedAt', 'is', null)
+      .orderBy('missions.sortOrder', 'asc')
+      .orderBy('missions.createdAt', 'asc')
+      .execute();
+  }
+
   async findByWorkspace(
     workspaceId: string,
     status?: string,

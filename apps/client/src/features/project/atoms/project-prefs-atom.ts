@@ -1,4 +1,3 @@
-import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 import type { MissionStatus } from '@/features/project/types/project.types';
 
@@ -32,6 +31,36 @@ export const taskViewModeAtom = atomWithStorage<TaskViewMode>(
   'drawer',
 );
 
-// ── Mission status filter in sidebar (session only) ────────────────────────────
+// ── Task note full width (persisted) ──────────────────────────────────────────
 
-export const missionStatusFilterAtom = atom<MissionStatus | null>(null);
+export const taskNoteFullWidthAtom = atomWithStorage<boolean>(
+  'docmost:task-note-full-width',
+  false,
+);
+
+// ── Mission status filter in sidebar (persisted) ───────────────────────────────
+
+export const missionStatusFilterAtom = atomWithStorage<MissionStatus | null>(
+  'docmost:mission-status-filter',
+  null,
+);
+
+// ── Sort keys for sidebar (persisted) ─────────────────────────────────────────
+
+export type DomainSortKey = 'default' | 'name-asc' | 'name-desc';
+export type MissionSortKey = 'default' | 'name-asc' | 'name-desc' | 'status';
+
+export const domainSortAtom = atomWithStorage<DomainSortKey>(
+  'docmost:domain-sort',
+  'default',
+);
+export const missionSortAtom = atomWithStorage<MissionSortKey>(
+  'docmost:mission-sort',
+  'default',
+);
+
+// ── Sidebar view toggle (pages vs projects) ────────────────────────────────────
+export const sidebarViewAtom = atomWithStorage<'pages' | 'projects'>(
+  'docmost:sidebar-view',
+  'pages',
+);

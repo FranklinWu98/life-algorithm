@@ -21,17 +21,18 @@ export class DomainService {
       description: dto.description ?? null,
       color: dto.color ?? null,
       sortOrder: dto.sortOrder ?? 0,
+      spaceId: dto.spaceId,
       workspaceId,
       creatorId: user.id,
     });
   }
 
-  async getAll(workspaceId: string): Promise<Domain[]> {
-    return this.domainRepo.findByWorkspace(workspaceId);
+  async getAll(spaceId: string): Promise<Domain[]> {
+    return this.domainRepo.findBySpace(spaceId);
   }
 
-  async getById(domainId: string, workspaceId: string): Promise<Domain> {
-    const domain = await this.domainRepo.findById(domainId, workspaceId);
+  async getById(domainId: string, spaceId: string): Promise<Domain> {
+    const domain = await this.domainRepo.findById(domainId, spaceId);
     if (!domain) {
       throw new NotFoundException('Domain not found');
     }
@@ -40,10 +41,10 @@ export class DomainService {
 
   async update(
     domainId: string,
-    workspaceId: string,
+    spaceId: string,
     dto: UpdateDomainDto,
   ): Promise<void> {
-    const domain = await this.domainRepo.findById(domainId, workspaceId);
+    const domain = await this.domainRepo.findById(domainId, spaceId);
     if (!domain) {
       throw new NotFoundException('Domain not found');
     }
@@ -58,8 +59,8 @@ export class DomainService {
     );
   }
 
-  async remove(domainId: string, workspaceId: string): Promise<void> {
-    const domain = await this.domainRepo.findById(domainId, workspaceId);
+  async remove(domainId: string, spaceId: string): Promise<void> {
+    const domain = await this.domainRepo.findById(domainId, spaceId);
     if (!domain) {
       throw new NotFoundException('Domain not found');
     }

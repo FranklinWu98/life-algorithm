@@ -10,7 +10,6 @@ import {
   sidebarWidthAtom,
 } from "@/components/layouts/global/hooks/atoms/sidebar-atom.ts";
 import { SpaceSidebar } from "@/features/space/components/sidebar/space-sidebar.tsx";
-import { ProjectSidebar } from "@/features/project/components/sidebar/project-sidebar.tsx";
 import { AppHeader } from "@/components/layouts/global/app-header.tsx";
 import Aside from "@/components/layouts/global/aside.tsx";
 import classes from "./app-shell.module.css";
@@ -73,12 +72,11 @@ export default function GlobalAppShell({
   const location = useLocation();
   const isSettingsRoute = location.pathname.startsWith("/settings");
   const isSpaceRoute = location.pathname.startsWith("/s/");
-  const isProjectRoute = location.pathname.startsWith("/project");
   const isHomeRoute = location.pathname.startsWith("/home");
   const isSpacesRoute = location.pathname === "/spaces";
   const isPageRoute = location.pathname.includes("/p/");
   const hideSidebar = isHomeRoute || isSpacesRoute;
-  const useDynamicSidebar = isSpaceRoute || isProjectRoute;
+  const useDynamicSidebar = isSpaceRoute;
 
   return (
     <AppShell
@@ -114,7 +112,6 @@ export default function GlobalAppShell({
           <div className={classes.resizeHandle} onMouseDown={startResizing} />
           {isSpaceRoute && <SpaceSidebar />}
           {isSettingsRoute && <SettingsSidebar />}
-          {isProjectRoute && <ProjectSidebar />}
         </AppShell.Navbar>
       )}
       <AppShell.Main>

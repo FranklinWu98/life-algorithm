@@ -26,7 +26,6 @@ import { NotificationPopover } from "@/features/notification/components/notifica
 
 const links = [
   { link: APP_ROUTE.HOME, label: "Home" },
-  { link: APP_ROUTE.PROJECT, label: "Project" },
 ];
 
 export function AppHeader() {
@@ -83,7 +82,7 @@ export function AppHeader() {
             component={Link}
             to="/home"
           >
-            Docmost
+            Life Algorithm
           </Text>
 
           <Group ml={50} gap={5} className={classes.links} visibleFrom="sm">

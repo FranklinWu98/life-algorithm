@@ -16,7 +16,8 @@ export class MissionService {
     workspaceId: string,
     dto: CreateMissionDto,
   ): Promise<Mission> {
-    const domain = await this.domainRepo.findById(dto.domainId, workspaceId);
+    // Domain is scoped to a space — find it via spaceId embedded in the domain
+    const domain = await this.domainRepo.findById(dto.domainId, dto.spaceId);
     if (!domain) {
       throw new NotFoundException('Domain not found');
     }
@@ -35,11 +36,11 @@ export class MissionService {
   }
 
   async getByDomain(domainId: string, workspaceId: string): Promise<Mission[]> {
-    const domain = await this.domainRepo.findById(domainId, workspaceId);
-    if (!domain) {
-      throw new NotFoundException('Domain not found');
-    }
     return this.missionRepo.findByDomain(domainId, workspaceId);
+  }
+
+  async getBySpace(spaceId: string, workspaceId: string): Promise<Mission[]> {
+    return this.missionRepo.findBySpace(spaceId, workspaceId);
   }
 
   async getById(missionId: string, workspaceId: string): Promise<Mission> {
@@ -58,13 +59,6 @@ export class MissionService {
     const mission = await this.missionRepo.findById(missionId, workspaceId);
     if (!mission) {
       throw new NotFoundException('Mission not found');
-    }
-
-    if (dto.domainId) {
-      const domain = await this.domainRepo.findById(dto.domainId, workspaceId);
-      if (!domain) {
-        throw new NotFoundException('Domain not found');
-      }
     }
 
     await this.missionRepo.updateMission(

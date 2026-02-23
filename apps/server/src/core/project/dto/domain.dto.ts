@@ -25,6 +25,9 @@ export class CreateDomainDto {
   @IsInt()
   @Min(0)
   sortOrder?: number;
+
+  @IsUUID()
+  spaceId: string;
 }
 
 export class UpdateDomainDto {

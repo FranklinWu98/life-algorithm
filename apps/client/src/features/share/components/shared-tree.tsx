@@ -47,7 +47,7 @@ export default function SharedTree({ sharedPageTree }: SharedTree) {
   const currentNodeId = extractPageSlugId(pageSlug);
 
   const treeData: SharedPageTreeNode[] = useMemo(() => {
-    if (!sharedPageTree?.pageTree) return;
+    if (!sharedPageTree?.pageTree) return [];
     return buildSharedPageTree(sharedPageTree.pageTree);
   }, [sharedPageTree?.pageTree]);
 

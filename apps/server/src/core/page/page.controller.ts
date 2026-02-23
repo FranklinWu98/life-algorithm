@@ -3,12 +3,16 @@ import {
   Body,
   Controller,
   ForbiddenException,
+  Get,
   HttpCode,
   HttpStatus,
   NotFoundException,
+  Param,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
+import { IsUUID } from 'class-validator';
 import { PageService } from './services/page.service';
 import { CreatePageDto } from './dto/create-page.dto';
 import { UpdatePageDto } from './dto/update-page.dto';
@@ -153,6 +157,39 @@ export class PageController {
     }
 
     return updatedPage;
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Get('mission/:missionId')
+  async getByMission(
+    @Param('missionId') missionId: string,
+    @Query('spaceId') spaceId: string,
+    @AuthUser() user: User,
+  ) {
+    if (!spaceId) {
+      throw new BadRequestException('spaceId is required');
+    }
+    const ability = await this.spaceAbility.createForUser(user, spaceId);
+    if (ability.cannot(SpaceCaslAction.Read, SpaceCaslSubject.Page)) {
+      throw new ForbiddenException();
+    }
+    return this.pageRepo.findByMission(missionId, spaceId);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Get('space-tasks')
+  async getSpaceTasks(
+    @Query('spaceId') spaceId: string,
+    @AuthUser() user: User,
+  ) {
+    if (!spaceId) {
+      throw new BadRequestException('spaceId is required');
+    }
+    const ability = await this.spaceAbility.createForUser(user, spaceId);
+    if (ability.cannot(SpaceCaslAction.Read, SpaceCaslSubject.Page)) {
+      throw new ForbiddenException();
+    }
+    return this.pageRepo.findSpaceTasks(spaceId);
   }
 
   @HttpCode(HttpStatus.OK)

@@ -42,6 +42,12 @@ export class PageRepo {
     'updatedAt',
     'deletedAt',
     'contributorIds',
+    'missionId',
+    'taskStatus',
+    'importantLevel',
+    'timeToDoStart',
+    'timeToDoEnd',
+    'finishTime',
   ];
 
   async findById(
@@ -360,6 +366,28 @@ export class PageRepo {
         id: cursor.id,
       }),
     });
+  }
+
+  async findByMission(missionId: string, spaceId: string): Promise<Page[]> {
+    return this.db
+      .selectFrom('pages')
+      .select(this.baseFields)
+      .where('missionId', '=', missionId)
+      .where('spaceId', '=', spaceId)
+      .where('deletedAt', 'is', null)
+      .orderBy('createdAt', 'asc')
+      .execute();
+  }
+
+  async findSpaceTasks(spaceId: string): Promise<Page[]> {
+    return this.db
+      .selectFrom('pages')
+      .select(this.baseFields)
+      .where('spaceId', '=', spaceId)
+      .where('missionId', 'is not', null)
+      .where('deletedAt', 'is', null)
+      .orderBy('createdAt', 'asc')
+      .execute();
   }
 
   withSpace(eb: ExpressionBuilder<DB, 'pages'>) {

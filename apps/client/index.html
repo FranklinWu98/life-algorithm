@@ -21,6 +21,19 @@
 
     <!--window-config-->
 
+    <script>
+      // Polyfill for missing Picture-in-Picture API
+      // Some libraries may incorrectly reference this global during initialization
+      if (typeof window !== 'undefined' && !('documentPictureInPicture' in window)) {
+        Object.defineProperty(window, 'documentPictureInPicture', {
+          value: null,
+          writable: true,
+          enumerable: true,
+          configurable: true,
+        });
+      }
+    </script>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

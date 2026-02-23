@@ -37,8 +37,9 @@ import SpaceTrash from "@/pages/space/space-trash.tsx";
 import UserApiKeys from "@/ee/api-key/pages/user-api-keys";
 import WorkspaceApiKeys from "@/ee/api-key/pages/workspace-api-keys";
 import AiSettings from "@/ee/ai/pages/ai-settings.tsx";
-import ProjectHomePage from "@/pages/project/project-home.tsx";
-import MissionTasksPage from "@/pages/project/mission-tasks.tsx";
+import MissionPagesView from "@/pages/project/mission-pages.tsx";
+import AllTasksView from "@/pages/project/all-tasks.tsx";
+import ProjectsGalleryView from "@/pages/project/projects-gallery.tsx";
 
 export default function App() {
   const { t } = useTranslation();
@@ -81,13 +82,20 @@ export default function App() {
         <Route element={<Layout />}>
           <Route path={"/home"} element={<Home />} />
           <Route path={"/spaces"} element={<SpacesPage />} />
-          <Route path={"/project"} element={<ProjectHomePage />} />
-          <Route
-            path={"/project/d/:domainId/m/:missionId"}
-            element={<MissionTasksPage />}
-          />
           <Route path={"/s/:spaceSlug"} element={<SpaceHome />} />
           <Route path={"/s/:spaceSlug/trash"} element={<SpaceTrash />} />
+          <Route
+            path={"/s/:spaceSlug/tasks"}
+            element={<AllTasksView />}
+          />
+          <Route
+            path={"/s/:spaceSlug/projects"}
+            element={<ProjectsGalleryView />}
+          />
+          <Route
+            path={"/s/:spaceSlug/mission/:missionId"}
+            element={<MissionPagesView />}
+          />
           <Route
             path={"/s/:spaceSlug/p/:pageSlug"}
             element={<Page />}

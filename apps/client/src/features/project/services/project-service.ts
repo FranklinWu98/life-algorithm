@@ -2,29 +2,22 @@ import api from '@/lib/api-client';
 import {
   ICreateDomain,
   ICreateMission,
-  ICreateTask,
   IDomain,
   IMission,
-  ITask,
-  ITaskNote,
   IUpdateDomain,
   IUpdateMission,
-  IUpdateTask,
 } from '@/features/project/types/project.types';
-
-// Every NestJS response is wrapped: { data: T, success: true, status: N }
-// The axios interceptor returns response.data (the HTTP body),
-// so we still need to extract .data from the NestJS transform wrapper.
+import type { IPage } from '@/features/page/types/page.types';
 
 // ── Domains ──────────────────────────────────────────────────────────────────
 
-export async function getDomains(): Promise<IDomain[]> {
-  const res = await api.get('/domains');
+export async function getDomains(spaceId: string): Promise<IDomain[]> {
+  const res = await api.get('/domains', { params: { spaceId } });
   return res.data;
 }
 
-export async function getDomainById(domainId: string): Promise<IDomain> {
-  const res = await api.get(`/domains/${domainId}`);
+export async function getDomainById(domainId: string, spaceId: string): Promise<IDomain> {
+  const res = await api.get(`/domains/${domainId}`, { params: { spaceId } });
   return res.data;
 }
 
@@ -35,21 +28,25 @@ export async function createDomain(data: ICreateDomain): Promise<IDomain> {
 
 export async function updateDomain(
   domainId: string,
+  spaceId: string,
   data: IUpdateDomain,
 ): Promise<void> {
-  await api.put(`/domains/${domainId}`, data);
+  await api.put(`/domains/${domainId}`, data, { params: { spaceId } });
 }
 
-export async function deleteDomain(domainId: string): Promise<void> {
-  await api.delete(`/domains/${domainId}`);
+export async function deleteDomain(domainId: string, spaceId: string): Promise<void> {
+  await api.delete(`/domains/${domainId}`, { params: { spaceId } });
 }
 
 // ── Missions ─────────────────────────────────────────────────────────────────
 
-export async function getMissionsByDomain(
-  domainId: string,
-): Promise<IMission[]> {
+export async function getMissionsByDomain(domainId: string): Promise<IMission[]> {
   const res = await api.get('/missions', { params: { domainId } });
+  return res.data;
+}
+
+export async function getMissionsBySpace(spaceId: string): Promise<IMission[]> {
+  const res = await api.get('/missions', { params: { spaceId } });
   return res.data;
 }
 
@@ -74,48 +71,16 @@ export async function deleteMission(missionId: string): Promise<void> {
   await api.delete(`/missions/${missionId}`);
 }
 
-// ── Tasks ─────────────────────────────────────────────────────────────────────
+// ── Mission pages (pages that belong to a mission) ───────────────────────────
 
-export async function getTasksByMission(
-  missionId: string,
-  status?: string,
-): Promise<ITask[]> {
-  const res = await api.get('/tasks', { params: { missionId, status } });
+export async function getMissionPages(missionId: string, spaceId: string): Promise<IPage[]> {
+  const res = await api.get(`/pages/mission/${missionId}`, { params: { spaceId } });
   return res.data;
 }
 
-export async function getTaskById(taskId: string): Promise<ITask> {
-  const res = await api.get(`/tasks/${taskId}`);
-  return res.data;
-}
+// ── All task-pages for a space ────────────────────────────────────────────────
 
-export async function createTask(data: ICreateTask): Promise<ITask> {
-  const res = await api.post('/tasks', data);
-  return res.data;
-}
-
-export async function updateTask(
-  taskId: string,
-  data: IUpdateTask,
-): Promise<void> {
-  await api.put(`/tasks/${taskId}`, data);
-}
-
-export async function deleteTask(taskId: string): Promise<void> {
-  await api.delete(`/tasks/${taskId}`);
-}
-
-// ── Task Notes ────────────────────────────────────────────────────────────────
-
-export async function getTaskNote(taskId: string): Promise<ITaskNote | null> {
-  const res = await api.get(`/tasks/${taskId}/note`);
-  return res.data;
-}
-
-export async function updateTaskNote(
-  taskId: string,
-  data: { content?: Record<string, unknown>; textContent?: string },
-): Promise<ITaskNote> {
-  const res = await api.put(`/tasks/${taskId}/note`, data);
+export async function getSpaceTasks(spaceId: string): Promise<IPage[]> {
+  const res = await api.get('/pages/space-tasks', { params: { spaceId } });
   return res.data;
 }

@@ -13,6 +13,7 @@ import {
 } from "@/features/space/permissions/permissions.type.ts";
 import { useTranslation } from "react-i18next";
 import React from "react";
+import { PageTaskProps } from "@/features/project/components/page-task-props.tsx";
 import { EmptyState } from "@/components/ui/empty-state.tsx";
 import { IconAlertTriangle, IconFileOff } from "@tabler/icons-react";
 import { Button } from "@mantine/core";
@@ -102,6 +103,14 @@ function PageContent({ pageSlug }: { pageSlug: string | undefined }) {
         </Helmet>
 
         <MemoizedPageHeader
+          readOnly={spaceAbility.cannot(
+            SpaceCaslAction.Manage,
+            SpaceCaslSubject.Page,
+          )}
+        />
+
+        <PageTaskProps
+          page={page}
           readOnly={spaceAbility.cannot(
             SpaceCaslAction.Manage,
             SpaceCaslSubject.Page,

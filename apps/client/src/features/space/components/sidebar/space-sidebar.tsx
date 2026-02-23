@@ -2,6 +2,7 @@ import {
   ActionIcon,
   Group,
   Menu,
+  SegmentedControl,
   Text,
   Tooltip,
   UnstyledButton,
@@ -27,6 +28,8 @@ import SpaceSettingsModal from "@/features/space/components/settings-modal.tsx";
 import { useGetSpaceBySlugQuery } from "@/features/space/queries/space-query.ts";
 import { getSpaceUrl } from "@/lib/config.ts";
 import SpaceTree from "@/features/page/tree/components/space-tree.tsx";
+import { ProjectSidebar } from "@/features/project/components/sidebar/project-sidebar.tsx";
+import { sidebarViewAtom } from "@/features/project/atoms/project-prefs-atom.ts";
 import { useSpaceAbility } from "@/features/space/permissions/use-space-ability.ts";
 import {
   SpaceCaslAction,
@@ -43,6 +46,7 @@ import { searchSpotlight } from "@/features/search/constants";
 export function SpaceSidebar() {
   const { t } = useTranslation();
   const [tree] = useAtom(treeApiAtom);
+  const [sidebarView, setSidebarView] = useAtom(sidebarViewAtom);
   const location = useLocation();
   const [opened, { open: openSettings, close: closeSettings }] =
     useDisclosure(false);
@@ -154,43 +158,63 @@ export function SpaceSidebar() {
           </div>
         </div>
 
-        <div className={clsx(classes.section, classes.sectionPages)}>
-          <Group className={classes.pagesHeader} justify="space-between">
-            <Text size="xs" fw={500} c="dimmed">
-              {t("Pages")}
-            </Text>
+        {/* View toggle */}
+        <div className={classes.section} style={{ border: "none", padding: "4px 8px" }}>
+          <SegmentedControl
+            fullWidth
+            size="xs"
+            value={sidebarView}
+            onChange={(v) => setSidebarView(v as "pages" | "projects")}
+            data={[
+              { label: t("Pages"), value: "pages" },
+              { label: t("Projects"), value: "projects" },
+            ]}
+          />
+        </div>
 
-            {spaceAbility.can(
-              SpaceCaslAction.Manage,
-              SpaceCaslSubject.Page,
-            ) && (
-              <Group gap="xs">
-                <SpaceMenu spaceId={space.id} onSpaceSettings={openSettings} />
+        {sidebarView === "projects" ? (
+          <div className={clsx(classes.section, classes.sectionPages)}>
+            <ProjectSidebar spaceId={space.id} spaceSlug={space.slug} />
+          </div>
+        ) : (
+          <div className={clsx(classes.section, classes.sectionPages)}>
+            <Group className={classes.pagesHeader} justify="space-between">
+              <Text size="xs" fw={500} c="dimmed">
+                {t("Pages")}
+              </Text>
 
-                <Tooltip label={t("Create page")} withArrow position="right">
-                  <ActionIcon
-                    variant="default"
-                    size={18}
-                    onClick={handleCreatePage}
-                    aria-label={t("Create page")}
-                  >
-                    <IconPlus />
-                  </ActionIcon>
-                </Tooltip>
-              </Group>
-            )}
-          </Group>
-
-          <div className={classes.pages}>
-            <SpaceTree
-              spaceId={space.id}
-              readOnly={spaceAbility.cannot(
+              {spaceAbility.can(
                 SpaceCaslAction.Manage,
                 SpaceCaslSubject.Page,
+              ) && (
+                <Group gap="xs">
+                  <SpaceMenu spaceId={space.id} onSpaceSettings={openSettings} />
+
+                  <Tooltip label={t("Create page")} withArrow position="right">
+                    <ActionIcon
+                      variant="default"
+                      size={18}
+                      onClick={handleCreatePage}
+                      aria-label={t("Create page")}
+                    >
+                      <IconPlus />
+                    </ActionIcon>
+                  </Tooltip>
+                </Group>
               )}
-            />
+            </Group>
+
+            <div className={classes.pages}>
+              <SpaceTree
+                spaceId={space.id}
+                readOnly={spaceAbility.cannot(
+                  SpaceCaslAction.Manage,
+                  SpaceCaslSubject.Page,
+                )}
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <SpaceSettingsModal

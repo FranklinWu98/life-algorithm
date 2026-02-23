@@ -14,22 +14,22 @@ export class DomainRepo {
 
   async findById(
     domainId: string,
-    workspaceId: string,
+    spaceId: string,
   ): Promise<Domain | undefined> {
     return this.db
       .selectFrom('domains')
       .selectAll()
       .where('id', '=', domainId)
-      .where('workspaceId', '=', workspaceId)
+      .where('spaceId', '=', spaceId)
       .where('deletedAt', 'is', null)
       .executeTakeFirst();
   }
 
-  async findByWorkspace(workspaceId: string): Promise<Domain[]> {
+  async findBySpace(spaceId: string): Promise<Domain[]> {
     return this.db
       .selectFrom('domains')
       .selectAll()
-      .where('workspaceId', '=', workspaceId)
+      .where('spaceId', '=', spaceId)
       .where('deletedAt', 'is', null)
       .orderBy('sortOrder', 'asc')
       .orderBy('createdAt', 'asc')

@@ -27,6 +27,10 @@ class MissionsQueryDto {
   @IsOptional()
   @IsUUID()
   domainId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  spaceId?: string;
 }
 
 @UseGuards(JwtAuthGuard)
@@ -46,10 +50,13 @@ export class MissionController {
 
   @HttpCode(HttpStatus.OK)
   @Get()
-  async getByDomain(
+  async getAll(
     @Query() query: MissionsQueryDto,
     @AuthWorkspace() workspace: Workspace,
   ) {
+    if (query.spaceId) {
+      return this.missionService.getBySpace(query.spaceId, workspace.id);
+    }
     return this.missionService.getByDomain(query.domainId, workspace.id);
   }
 
