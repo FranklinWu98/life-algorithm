@@ -69,7 +69,7 @@ import { searchSpotlight } from "@/features/search/constants.ts";
 import { useEditorScroll } from "./hooks/use-editor-scroll";
 import { EditorAiMenu } from "@/ee/ai/components/editor/ai-menu/ai-menu";
 import { Divider, Group, Paper, Stack, Text, UnstyledButton } from "@mantine/core";
-import { IconClipboard, IconCopy, IconTrash } from "@tabler/icons-react";
+import { IconClipboard, IconCopy, IconPlus, IconTrash } from "@tabler/icons-react";
 
 interface PageEditorProps {
   pageId: string;
@@ -489,6 +489,15 @@ function DragHandleMenu({ editor }: { editor: Editor }) {
     editor.commands.focus();
   };
 
+  const handleAddBelow = () => {
+    if (menu.nodePos < 0) { close(); return; }
+    const node = editor.state.doc.nodeAt(menu.nodePos);
+    if (!node) { close(); return; }
+    const insertPos = menu.nodePos + node.nodeSize;
+    editor.chain().focus().insertContentAt(insertPos, { type: 'paragraph', content: [] }).run();
+    close();
+  };
+
   const handleDuplicate = () => {
     if (menu.nodePos < 0) { close(); return; }
     const node = editor.state.doc.nodeAt(menu.nodePos);
@@ -529,6 +538,16 @@ function DragHandleMenu({ editor }: { editor: Editor }) {
         p={4}
       >
         <Stack gap={2}>
+          <UnstyledButton
+            onClick={handleAddBelow}
+            style={{ padding: "6px 10px", borderRadius: 4, width: "100%" }}
+          >
+            <Group gap="xs" wrap="nowrap">
+              <IconPlus size={14} />
+              <Text size="sm">Add content below</Text>
+            </Group>
+          </UnstyledButton>
+          <Divider my={2} />
           <UnstyledButton
             onClick={handleDuplicate}
             style={{ padding: "6px 10px", borderRadius: 4, width: "100%" }}

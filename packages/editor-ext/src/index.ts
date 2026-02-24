@@ -1,4 +1,5 @@
 export * from "./lib/trailing-node";
+export * from "./lib/column";
 export * from "./lib/comment/comment";
 export * from "./lib/utils";
 export * from "./lib/math";

@@ -28,12 +28,17 @@ export function FullEditor({
 }: FullEditorProps) {
   const [user] = useAtom(userAtom);
   const fullPageWidth = user.settings?.preferences?.fullPageWidth;
+  const editorScale = user.settings?.preferences?.editorScale ?? 100;
+  const scaleStyle = editorScale !== 100
+    ? { '--editor-scale': editorScale / 100 } as React.CSSProperties
+    : undefined;
 
   return (
     <Container
       fluid={fullPageWidth}
       size={!fullPageWidth && 900}
       className={classes.editor}
+      style={scaleStyle}
     >
       <MemoizedTitleEditor
         pageId={pageId}

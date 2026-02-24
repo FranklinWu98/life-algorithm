@@ -1,0 +1,48 @@
+/* Multi-column layout */
+
+div[data-type="columns"] {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin: 4px 0;
+}
+
+div[data-type="column"] {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  transition: border-color 0.1s;
+}
+
+/* Subtle column border when inside selected columns block */
+.ProseMirror-selectednode div[data-type="column"],
+div[data-type="column"]:focus-within {
+  border-color: light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-5));
+}
+
+/* Make images in columns fill their column width */
+div[data-type="column"] img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* In the editor show minimal indicator only on hover/focus */
+.ProseMirror div[data-type="columns"] {
+  padding: 4px 0;
+}
+
+.ProseMirror div[data-type="column"] {
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 6px 8px;
+  min-height: 40px;
+  transition: border-color 0.15s;
+}
+
+.ProseMirror div[data-type="column"]:hover,
+.ProseMirror div[data-type="column"]:focus-within {
+  border-color: light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-5));
+}

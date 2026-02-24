@@ -173,7 +173,7 @@ export class UserRepo {
   async updatePreference(
     userId: string,
     prefKey: string,
-    prefValue: string | boolean,
+    prefValue: string | boolean | number,
   ) {
     return await this.db
       .updateTable('users')

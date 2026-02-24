@@ -26,7 +26,7 @@ export const Details = Node.create<DetailsOptions>({
   group: "block",
   content: "detailsSummary detailsContent",
   defining: true,
-  isolating: true,
+  isolating: false,
   // @ts-ignore
   allowGapCursor: false,
   addOptions() {

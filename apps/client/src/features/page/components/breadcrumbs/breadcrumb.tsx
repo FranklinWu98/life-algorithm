@@ -1,6 +1,6 @@
 import { useAtomValue } from "jotai";
 import { treeDataAtom } from "@/features/page/tree/atoms/tree-data-atom.ts";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { findBreadcrumbPath } from "@/features/page/tree/utils";
 import {
   Button,
@@ -19,6 +19,10 @@ import { buildPageUrl } from "@/features/page/page.utils.ts";
 import { usePageQuery } from "@/features/page/queries/page-query.ts";
 import { extractPageSlugId } from "@/lib";
 import { useMediaQuery } from "@mantine/hooks";
+import {
+  useGetDomainsQuery,
+  useGetSpaceMissionsQuery,
+} from "@/features/project/queries/project-query";
 
 function getTitle(name: string, icon: string) {
   if (icon) {
@@ -37,6 +41,27 @@ export default function Breadcrumb() {
     pageId: extractPageSlugId(pageSlug),
   });
   const isMobile = useMediaQuery("(max-width: 48em)");
+
+  // Project path breadcrumb (only when the page belongs to a mission)
+  const { data: domains = [] } = useGetDomainsQuery(currentPage?.spaceId ?? "");
+  const { data: allMissions = [] } = useGetSpaceMissionsQuery(
+    currentPage?.spaceId ?? "",
+  );
+  const currentMission = useMemo(
+    () =>
+      currentPage?.missionId
+        ? allMissions.find((m) => m.id === currentPage.missionId)
+        : undefined,
+    [allMissions, currentPage?.missionId],
+  );
+  const currentDomain = useMemo(
+    () =>
+      currentMission
+        ? domains.find((d) => d.id === currentMission.domainId)
+        : undefined,
+    [domains, currentMission],
+  );
+  const isTaskPage = !!currentPage?.missionId;
 
   useEffect(() => {
     if (treeData?.length > 0 && currentPage) {
@@ -159,6 +184,45 @@ export default function Breadcrumb() {
 
     return breadcrumbNodes.map(renderAnchor);
   };
+
+  // Project-path breadcrumb for task pages
+  if (isTaskPage && (currentDomain || currentMission)) {
+    return (
+      <div className={classes.breadcrumbDiv}>
+        <Breadcrumbs
+          className={classes.breadcrumbs}
+          separator="›"
+          separatorMargin={4}
+        >
+          {currentDomain && (
+            <Anchor
+              component={Link}
+              to={`/s/${spaceSlug}/domain/${currentDomain.id}`}
+              underline="hover"
+              fz="sm"
+              c="dimmed"
+            >
+              {currentDomain.name}
+            </Anchor>
+          )}
+          {currentMission && (
+            <Anchor
+              component={Link}
+              to={`/s/${spaceSlug}/mission/${currentMission.id}`}
+              underline="hover"
+              fz="sm"
+              c="dimmed"
+            >
+              {currentMission.name}
+            </Anchor>
+          )}
+          <Text fz="sm" c="dimmed" fw={500} className={classes.truncatedText}>
+            {currentPage?.title || "Untitled"}
+          </Text>
+        </Breadcrumbs>
+      </div>
+    );
+  }
 
   return (
     <div className={classes.breadcrumbDiv}>

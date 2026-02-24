@@ -8,16 +8,47 @@
     user-select: none;
 }
 
+/* Nav item — matches space-sidebar .menu / .menuItemInner style */
+.navItem {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    font-size: var(--mantine-font-size-sm);
+    padding: rem(4px) var(--mantine-spacing-xs);
+    border-radius: var(--mantine-radius-sm);
+    font-weight: 500;
+    color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-0));
+    text-decoration: none;
+    margin-bottom: rem(2px);
+
+    &:hover {
+        background-color: light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-6));
+        color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-0));
+    }
+}
+
+.navItemActive {
+    background-color: light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-6));
+}
+
+.navItemInner {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.navItemIcon {
+    margin-right: var(--mantine-spacing-sm);
+    color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+}
+
 .header {
     display: flex;
     align-items: center;
     gap: var(--mantine-spacing-xs);
-    padding: var(--mantine-spacing-sm) 0;
-    margin-bottom: var(--mantine-spacing-xs);
-    font-size: var(--mantine-font-size-sm);
-    font-weight: 600;
-    color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-0));
-    border-bottom: rem(1px) solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-xs);
+    margin-bottom: rem(2px);
+    color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-3));
 }
 
 .headerIcon {
@@ -65,7 +96,7 @@
 }
 
 .domainName {
-    font-size: var(--mantine-font-size-sm);
+    font-size: var(--mantine-font-size-md);
     font-weight: 600;
     color: light-dark(var(--mantine-color-gray-8), var(--mantine-color-dark-0));
     overflow: hidden;
@@ -124,7 +155,7 @@
 }
 
 .missionName {
-    font-size: var(--mantine-font-size-xs);
+    font-size: var(--mantine-font-size-sm);
     font-weight: 500;
     color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
     overflow: hidden;
@@ -137,6 +168,18 @@
     align-items: center;
     opacity: 0;
     transition: opacity 100ms ease;
+    flex-shrink: 0;
+}
+
+/* Task count badge */
+.missionCount {
+    font-size: rem(10px);
+    font-weight: 500;
+    color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-3));
+    background: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+    border-radius: rem(8px);
+    padding: 0 rem(5px);
+    line-height: rem(16px);
     flex-shrink: 0;
 }
 

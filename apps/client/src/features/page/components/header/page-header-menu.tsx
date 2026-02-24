@@ -9,11 +9,13 @@ import {
   IconList,
   IconMarkdown,
   IconMessage,
+  IconPresentation,
   IconPrinter,
   IconTrash,
   IconWifiOff,
 } from "@tabler/icons-react";
 import React, { useEffect, useRef, useState } from "react";
+import PresentationMode from "@/features/page/components/presentation/presentation-mode";
 import useToggleAside from "@/hooks/use-toggle-aside.tsx";
 import { useAtom, useAtomValue } from "jotai";
 import { historyAtoms } from "@/features/page-history/atoms/history-atoms.ts";
@@ -121,6 +123,8 @@ function PageActionMenu({ readOnly }: PageActionMenuProps) {
     movePageModalOpened,
     { open: openMovePageModal, close: closeMoveSpaceModal },
   ] = useDisclosure(false);
+  const [presentOpened, { open: openPresent, close: closePresent }] =
+    useDisclosure(false);
   const [pageEditor] = useAtom(pageEditorAtom);
   const pageUpdatedAt = useTimeAgo(page?.updatedAt);
 
@@ -212,6 +216,13 @@ function PageActionMenu({ readOnly }: PageActionMenuProps) {
           )}
 
           <Menu.Item
+            leftSection={<IconPresentation size={16} />}
+            onClick={openPresent}
+          >
+            {t("Present")}
+          </Menu.Item>
+
+          <Menu.Item
             leftSection={<IconFileExport size={16} />}
             onClick={openExportModal}
           >
@@ -289,6 +300,15 @@ function PageActionMenu({ readOnly }: PageActionMenuProps) {
         onClose={closeMoveSpaceModal}
         open={movePageModalOpened}
       />
+
+      {presentOpened && pageEditor && (
+        <PresentationMode
+          editor={pageEditor}
+          pageTitle={page?.title ?? ""}
+          pageIcon={page?.icon}
+          onClose={closePresent}
+        />
+      )}
     </>
   );
 }

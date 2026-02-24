@@ -40,6 +40,11 @@ import AiSettings from "@/ee/ai/pages/ai-settings.tsx";
 import MissionPagesView from "@/pages/project/mission-pages.tsx";
 import AllTasksView from "@/pages/project/all-tasks.tsx";
 import ProjectsGalleryView from "@/pages/project/projects-gallery.tsx";
+import DomainMissionsView from "@/pages/project/domain-missions.tsx";
+import AdminLayout from "@/pages/admin/admin-layout.tsx";
+import AdminDashboard from "@/pages/admin/admin-dashboard.tsx";
+import AdminUsers from "@/pages/admin/admin-users.tsx";
+import AdminSystem from "@/pages/admin/admin-system.tsx";
 
 export default function App() {
   const { t } = useTranslation();
@@ -93,6 +98,10 @@ export default function App() {
             element={<ProjectsGalleryView />}
           />
           <Route
+            path={"/s/:spaceSlug/domain/:domainId"}
+            element={<DomainMissionsView />}
+          />
+          <Route
             path={"/s/:spaceSlug/mission/:missionId"}
             element={<MissionPagesView />}
           />
@@ -120,6 +129,12 @@ export default function App() {
             {!isCloud() && <Route path={"license"} element={<License />} />}
             {isCloud() && <Route path={"billing"} element={<Billing />} />}
           </Route>
+        </Route>
+
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="system" element={<AdminSystem />} />
         </Route>
 
         <Route path="*" element={<Error404 />} />

@@ -38,6 +38,7 @@ import {
   useDeleteMissionMutation,
   useGetDomainsQuery,
   useGetMissionsQuery,
+  useGetSpaceTasksQuery,
   useUpdateDomainMutation,
   useUpdateMissionMutation,
 } from '@/features/project/queries/project-query';
@@ -246,9 +247,10 @@ interface DomainItemProps {
   domain: IDomain;
   spaceId: string;
   spaceSlug: string;
+  taskCountMap: Map<string, number>;
 }
 
-function DomainItem({ domain, spaceId, spaceSlug }: DomainItemProps) {
+function DomainItem({ domain, spaceId, spaceSlug, taskCountMap }: DomainItemProps) {
   const [expanded, setExpanded] = useState(true);
   const { data: missions = [], isLoading } = useGetMissionsQuery(domain.id);
   const deleteDomain = useDeleteDomainMutation();
@@ -285,7 +287,6 @@ function DomainItem({ domain, spaceId, spaceSlug }: DomainItemProps) {
       <div className={classes.domainItem}>
         <div
           className={classes.domainLeft}
-          onClick={() => setExpanded((v) => !v)}
           style={{ flex: 1 }}
         >
           <ActionIcon
@@ -293,6 +294,7 @@ function DomainItem({ domain, spaceId, spaceSlug }: DomainItemProps) {
             variant="transparent"
             color="gray"
             style={{ flexShrink: 0 }}
+            onClick={() => setExpanded((v) => !v)}
           >
             {expanded ? (
               <IconChevronDown size={12} />
@@ -304,7 +306,14 @@ function DomainItem({ domain, spaceId, spaceSlug }: DomainItemProps) {
             className={classes.domainColor}
             style={{ backgroundColor: dotColor }}
           />
-          <span className={classes.domainName}>{domain.name}</span>
+          <UnstyledButton
+            component={Link}
+            to={`/s/${spaceSlug}/domain/${domain.id}`}
+            className={classes.domainName}
+            style={{ color: 'inherit', textDecoration: 'none' }}
+          >
+            {domain.name}
+          </UnstyledButton>
         </div>
 
         <div className={classes.domainActions}>
@@ -360,7 +369,7 @@ function DomainItem({ domain, spaceId, spaceSlug }: DomainItemProps) {
             </Text>
           )}
           {filteredSortedMissions.map((m) => (
-            <MissionItem key={m.id} mission={m} domain={domain} spaceId={spaceId} spaceSlug={spaceSlug} />
+            <MissionItem key={m.id} mission={m} domain={domain} spaceId={spaceId} spaceSlug={spaceSlug} taskCount={taskCountMap.get(m.id)} />
           ))}
           {!isLoading && filteredSortedMissions.length === 0 && (
             <Text size="xs" c="dimmed" px="xs">
@@ -393,9 +402,10 @@ interface MissionItemProps {
   domain: IDomain;
   spaceId: string;
   spaceSlug: string;
+  taskCount?: number;
 }
 
-function MissionItem({ mission, domain, spaceId, spaceSlug }: MissionItemProps) {
+function MissionItem({ mission, domain, spaceId, spaceSlug, taskCount }: MissionItemProps) {
   const { missionId: activeMissionId } = useParams();
   const deleteMission = useDeleteMissionMutation();
   const [editOpened, { open: openEdit, close: closeEdit }] = useDisclosure(false);
@@ -415,6 +425,9 @@ function MissionItem({ mission, domain, spaceId, spaceSlug }: MissionItemProps) 
         <div className={classes.missionLeft}>
           <IconTarget size={13} color={`var(--mantine-color-${statusColor}-5)`} />
           <span className={classes.missionName}>{mission.name}</span>
+          {taskCount !== undefined && taskCount > 0 && (
+            <span className={classes.missionCount}>{taskCount}</span>
+          )}
         </div>
 
         <div className={classes.missionActions}>
@@ -618,7 +631,7 @@ function FilterSortBar() {
 
   return (
     <div style={{ marginBottom: 8 }}>
-      <Group gap={4} mb={4} align="center">
+      <Group gap={4} mb={4} align="center" justify="flex-end">
         {/* Filter menu */}
         <Menu width={180} shadow="md" withinPortal position="bottom-start">
           <Menu.Target>
@@ -706,11 +719,22 @@ interface ProjectSidebarProps {
 
 export function ProjectSidebar({ spaceId, spaceSlug }: ProjectSidebarProps) {
   const { data: domains = [], isLoading } = useGetDomainsQuery(spaceId);
+  const { data: spaceTasks = [] } = useGetSpaceTasksQuery(spaceId);
   const [addDomainOpened, { open: openAddDomain, close: closeAddDomain }] =
     useDisclosure(false);
   const domainSort = useAtomValue(domainSortAtom);
   const location = useLocation();
-  const isAllTasksActive = location.pathname === `/s/${spaceSlug}/tasks`;
+  const isProjectsActive = location.pathname === `/s/${spaceSlug}/projects`;
+
+  const taskCountMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const task of spaceTasks) {
+      if (task.missionId) {
+        map.set(task.missionId, (map.get(task.missionId) ?? 0) + 1);
+      }
+    }
+    return map;
+  }, [spaceTasks]);
 
   const sortedDomains = useMemo(() => {
     if (domainSort === 'name-asc') return [...domains].sort((a, b) => a.name.localeCompare(b.name));
@@ -720,32 +744,19 @@ export function ProjectSidebar({ spaceId, spaceSlug }: ProjectSidebarProps) {
 
   return (
     <div className={classes.navbar}>
-      {/* Header */}
-      <div className={classes.header}>
-        <IconLayoutList size={16} className={classes.headerIcon} />
-        <UnstyledButton
-          component={Link}
-          to={`/s/${spaceSlug}/projects`}
-          style={{ fontSize: 15, fontWeight: 600, color: 'inherit', textDecoration: 'none', letterSpacing: 0 }}
-        >
-          Projects
-        </UnstyledButton>
-      </div>
-
-      {/* All Tasks shortcut */}
+      {/* Header — matches Overview/Search nav item style */}
       <UnstyledButton
         component={Link}
-        to={`/s/${spaceSlug}/tasks`}
-        className={clsx(classes.missionItem, isAllTasksActive && classes.missionItemActive)}
-        style={{ marginBottom: 4 }}
+        to={`/s/${spaceSlug}/projects`}
+        className={clsx(classes.navItem, isProjectsActive && classes.navItemActive)}
       >
-        <div className={classes.missionLeft}>
-          <IconList size={13} />
-          <span style={{ fontSize: 13, fontWeight: 500 }}>All Tasks</span>
+        <div className={classes.navItemInner}>
+          <IconLayoutList size={18} stroke={2} className={classes.navItemIcon} />
+          <span>Project</span>
         </div>
       </UnstyledButton>
 
-      {/* Filter + Sort controls */}
+      {/* Filter + Sort controls — right-aligned */}
       <FilterSortBar />
 
       {/* Tree */}
@@ -757,7 +768,7 @@ export function ProjectSidebar({ spaceId, spaceSlug }: ProjectSidebarProps) {
         )}
 
         {sortedDomains.map((domain) => (
-          <DomainItem key={domain.id} domain={domain} spaceId={spaceId} spaceSlug={spaceSlug} />
+          <DomainItem key={domain.id} domain={domain} spaceId={spaceId} spaceSlug={spaceSlug} taskCountMap={taskCountMap} />
         ))}
 
         {!isLoading && domains.length === 0 && (

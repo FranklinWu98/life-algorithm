@@ -132,7 +132,7 @@ export function SpaceSidebar() {
               </div>
             </UnstyledButton>
 
-            {spaceAbility.can(
+            {sidebarView === "pages" && spaceAbility.can(
               SpaceCaslAction.Manage,
               SpaceCaslSubject.Page,
             ) && (

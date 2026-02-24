@@ -1,6 +1,8 @@
 import {
   ActionIcon,
+  Anchor,
   Badge,
+  Breadcrumbs,
   Button,
   Chip,
   Divider,
@@ -32,6 +34,7 @@ import {
 import {
   useGetMissionQuery,
   useGetMissionPagesQuery,
+  useGetDomainQuery,
   projectKeys,
 } from '@/features/project/queries/project-query';
 import { useGetSpaceBySlugQuery } from '@/features/space/queries/space-query';
@@ -72,6 +75,7 @@ export default function MissionPagesView() {
 
   const { data: space, isLoading: spaceLoading } = useGetSpaceBySlugQuery(spaceSlug);
   const { data: mission, isLoading: missionLoading } = useGetMissionQuery(missionId ?? '');
+  const { data: domain } = useGetDomainQuery(mission?.domainId ?? '', space?.id ?? '');
   const { data: pages = [], isLoading: pagesLoading } = useGetMissionPagesQuery(
     missionId ?? '',
     space?.id ?? '',
@@ -85,6 +89,17 @@ export default function MissionPagesView() {
 
   const invalidate = () =>
     qc.invalidateQueries({ queryKey: projectKeys.missionPages(missionId ?? '') });
+
+  const invalidateMission = () =>
+    qc.invalidateQueries({ queryKey: projectKeys.mission(missionId ?? '') });
+
+  const updateMissionStatus = useMutation({
+    mutationFn: (status: string) =>
+      import('@/features/project/services/project-service').then(({ updateMission }) =>
+        updateMission(missionId!, { status: status as any }),
+      ),
+    onSuccess: invalidateMission,
+  });
 
   const createTask = useMutation({
     mutationFn: () =>
@@ -179,14 +194,64 @@ export default function MissionPagesView() {
   const hasFilters = !!search || !!statusFilter || importanceFilter !== null;
 
   return (
-    <div style={{ padding: '24px 32px', maxWidth: 1200 }}>
+    <>
+      {/* Fixed breadcrumb header — matches page view style */}
+      <div style={{
+        height: 45,
+        backgroundColor: 'var(--mantine-color-body)',
+        paddingLeft: 'var(--mantine-spacing-md)',
+        paddingRight: 'var(--mantine-spacing-md)',
+        position: 'fixed',
+        zIndex: 99,
+        top: 'var(--app-shell-header-offset, 0rem)',
+        insetInlineStart: 'var(--app-shell-navbar-offset, 0rem)',
+        insetInlineEnd: 'var(--app-shell-aside-offset, 0rem)',
+        display: 'flex',
+        alignItems: 'center',
+      }}>
+        <Breadcrumbs separator="›" separatorMargin={4}
+          styles={{ separator: { color: 'var(--mantine-color-dimmed)', fontSize: 13 } }}>
+          <Anchor component={Link} to={`/s/${spaceSlug}/projects`} size="sm" c="dimmed" underline="hover">
+            Projects
+          </Anchor>
+          {domain && (
+            <Anchor component={Link} to={`/s/${spaceSlug}/domain/${domain.id}`} size="sm" c="dimmed" underline="hover">
+              {domain.name}
+            </Anchor>
+          )}
+          <Text size="sm" fw={500}>{mission.name}</Text>
+        </Breadcrumbs>
+      </div>
+
+    <div style={{ padding: '29px 32px 24px', maxWidth: 1200 }}>
       {/* Mission header */}
       <Group mb="md" align="center" justify="space-between">
         <Group align="center">
           <Text fw={600} size="xl">{mission.name}</Text>
-          <Badge color={MISSION_STATUS_COLORS[mission.status] ?? 'gray'} variant="light">
-            {mission.status}
-          </Badge>
+          <Select
+            size="xs"
+            value={mission.status}
+            onChange={(val) => { if (val) updateMissionStatus.mutate(val); }}
+            data={[
+              { value: 'active', label: 'Active' },
+              { value: 'completed', label: 'Completed' },
+              { value: 'archived', label: 'Archived' },
+              { value: 'cancelled', label: 'Cancelled' },
+            ]}
+            variant="filled"
+            w={130}
+            leftSection={
+              <div style={{
+                width: 8, height: 8, borderRadius: '50%',
+                backgroundColor: `var(--mantine-color-${MISSION_STATUS_COLORS[mission.status] ?? 'gray'}-5)`,
+              }} />
+            }
+            renderOption={({ option }) => (
+              <Badge size="xs" color={MISSION_STATUS_COLORS[option.value] ?? 'gray'} variant="light">
+                {option.label}
+              </Badge>
+            )}
+          />
         </Group>
         <Button
           size="xs"
@@ -324,6 +389,7 @@ export default function MissionPagesView() {
         </Table>
       )}
     </div>
+    </>
   );
 }
 

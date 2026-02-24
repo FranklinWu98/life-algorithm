@@ -232,7 +232,9 @@ export default function SpaceTree({ spaceId, readOnly }: SpaceTreeProps) {
     };
   }, [setTreeApi]);
 
-  const filteredData = data.filter((node) => node?.spaceId === spaceId);
+  const filteredData = data.filter(
+    (node) => node?.spaceId === spaceId && !node?.missionId,
+  );
 
   return (
     <div ref={mergedRef} className={classes.treeContainer}>
@@ -324,7 +326,7 @@ function Node({ node, style, dragHandle, tree }: NodeRendererProps<any>) {
 
       appendChildren({
         parentId: node.data.id,
-        children: childrenTree,
+        children: childrenTree.filter((c) => !c.missionId),
       });
     } catch (error) {
       console.error("Failed to fetch children:", error);

@@ -20,7 +20,11 @@ export class EmailProcessor extends WorkerHost implements OnModuleDestroy {
     try {
       await this.mailService.sendEmail(job.data);
     } catch (err) {
-      throw err;
+      this.logger.warn(
+        `Failed to send email${job.data.to ? ` to ${job.data.to}` : ''}: ${(err as Error).message}. ` +
+        `Check MAIL_DRIVER and SMTP settings in your .env file.`,
+      );
+      return;
     }
 
     if (job.data.notificationId) {

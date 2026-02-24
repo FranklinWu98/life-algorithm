@@ -323,6 +323,7 @@ export class PageService {
         'spaceId',
         'creatorId',
         'deletedAt',
+        'missionId',
       ])
       .select((eb) => this.pageRepo.withHasChildren(eb))
       .where('deletedAt', 'is', null)

@@ -1,4 +1,3 @@
-import {Container} from "@mantine/core";
 import SpaceHomeTabs from "@/features/space/components/space-home-tabs.tsx";
 import {useParams} from "react-router-dom";
 import {useGetSpaceBySlugQuery} from "@/features/space/queries/space-query.ts";
@@ -14,9 +13,7 @@ export default function SpaceHome() {
             <Helmet>
                 <title>{space?.name || 'Overview'} - {getAppName()}</title>
             </Helmet>
-            <Container size={"800"} pt="xl">
-                {space && <SpaceHomeTabs/>}
-            </Container>
+            {space && <SpaceHomeTabs/>}
         </>
     );
 }

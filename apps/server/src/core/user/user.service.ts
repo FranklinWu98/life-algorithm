@@ -51,6 +51,14 @@ export class UserService {
       );
     }
 
+    if (typeof updateUserDto.editorScale !== 'undefined') {
+      return this.userRepo.updatePreference(
+        userId,
+        'editorScale',
+        updateUserDto.editorScale,
+      );
+    }
+
     if (updateUserDto.name) {
       user.name = updateUserDto.name;
     }

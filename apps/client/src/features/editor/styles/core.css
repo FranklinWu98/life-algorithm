@@ -1,4 +1,5 @@
 .ProseMirror {
+  zoom: var(--editor-scale, 1);
   background-color: light-dark(
     var(--mantine-color-white),
     var(--mantine-color-dark-7)

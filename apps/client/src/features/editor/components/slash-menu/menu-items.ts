@@ -3,10 +3,13 @@ import {
   IconCaretRightFilled,
   IconCheckbox,
   IconCode,
+  IconColumnInsertRight,
   IconH1,
   IconH2,
   IconH3,
   IconInfoCircle,
+  IconLayout2,
+  IconLayoutColumns,
   IconList,
   IconListNumbers,
   IconMath,
@@ -272,6 +275,22 @@ const CommandGroups: SlashMenuGroupedItemsType = {
       icon: IconCaretRightFilled,
       command: ({ editor, range }: CommandProps) =>
         editor.chain().focus().deleteRange(range).setDetails().run(),
+    },
+    {
+      title: "2 Columns",
+      description: "Insert a 2-column layout.",
+      searchTerms: ["column", "columns", "layout", "side", "grid", "2col"],
+      icon: IconLayout2,
+      command: ({ editor, range }: CommandProps) =>
+        editor.chain().focus().deleteRange(range).setColumns(2).run(),
+    },
+    {
+      title: "3 Columns",
+      description: "Insert a 3-column layout.",
+      searchTerms: ["column", "columns", "layout", "grid", "3col", "three"],
+      icon: IconLayoutColumns,
+      command: ({ editor, range }: CommandProps) =>
+        editor.chain().focus().deleteRange(range).setColumns(3).run(),
     },
     {
       title: "Callout",

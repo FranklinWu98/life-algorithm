@@ -13,6 +13,7 @@ import {
   IconDeviceDesktop,
   IconLogout,
   IconMoon,
+  IconServer,
   IconSettings,
   IconSun,
   IconUserCircle,
@@ -26,12 +27,14 @@ import useAuth from "@/features/auth/hooks/use-auth.ts";
 import { CustomAvatar } from "@/components/ui/custom-avatar.tsx";
 import { useTranslation } from "react-i18next";
 import { AvatarIconType } from "@/features/attachments/types/attachment.types.ts";
+import { useAdminStatsQuery } from "@/features/admin/queries/admin-query.ts";
 
 export default function TopMenu() {
   const { t } = useTranslation();
   const [currentUser] = useAtom(currentUserAtom);
   const { logout } = useAuth();
   const { colorScheme, setColorScheme } = useMantineColorScheme();
+  const { isSuccess: isAdmin } = useAdminStatsQuery();
 
   const user = currentUser?.user;
   const workspace = currentUser?.workspace;
@@ -77,6 +80,17 @@ export default function TopMenu() {
         >
           {t("Manage members")}
         </Menu.Item>
+
+        {isAdmin && (
+          <Menu.Item
+            component={Link}
+            to="/admin"
+            leftSection={<IconServer size={16} />}
+            color="blue"
+          >
+            {t("Admin console")}
+          </Menu.Item>
+        )}
 
         <Menu.Divider />
 

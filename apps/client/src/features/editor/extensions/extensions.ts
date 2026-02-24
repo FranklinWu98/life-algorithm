@@ -43,6 +43,8 @@ import {
   Highlight,
   UniqueID,
   SharedStorage,
+  Column,
+  Columns,
 } from "@docmost/editor-ext";
 import {
   randomElement,
@@ -77,6 +79,7 @@ import MentionView from "@/features/editor/components/mention/mention-view.tsx";
 import i18n from "@/i18n.ts";
 import { MarkdownClipboard } from "@/features/editor/extensions/markdown-clipboard.ts";
 import EmojiCommand from "./emoji-command";
+import { SelectBlockText } from "@/features/editor/extensions/select-block-text";
 import { countWords } from "alfaaz";
 
 const lowlight = createLowlight(common);
@@ -106,6 +109,11 @@ export const mainExtensions = [
       HTMLAttributes: {
         spellcheck: false,
       },
+    },
+    // Add data-type so GlobalDragHandle can detect paragraphs anywhere
+    // (including first-child paragraphs inside toggle/detailsContent)
+    paragraph: {
+      HTMLAttributes: { 'data-type': 'paragraph' },
     },
   }),
   SharedStorage,
@@ -144,7 +152,11 @@ export const mainExtensions = [
   }),
   Typography,
   TrailingNode,
-  GlobalDragHandle,
+  GlobalDragHandle.configure({
+    // 'paragraph' adds [data-type=paragraph] selector which catches ALL <p>
+    // tags, including first-child paragraphs inside toggle (detailsContent)
+    customNodes: ['paragraph'],
+  }),
   TextStyle,
   Color,
   SlashCommand,
@@ -192,6 +204,8 @@ export const mainExtensions = [
   Details,
   DetailsSummary,
   DetailsContent,
+  Column,
+  Columns,
   Youtube.configure({
     addPasteHandler: false,
     controls: true,
@@ -237,6 +251,7 @@ export const mainExtensions = [
   CharacterCount.configure({
     wordCounter: (text) => countWords(text),
   }),
+  SelectBlockText,
   SearchAndReplace.extend({
     addKeyboardShortcuts() {
       return {
